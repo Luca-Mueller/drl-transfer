@@ -65,17 +65,16 @@ TARGET_UPDATE = args.target_update
 param_color = Fore.YELLOW
 print("Agent Hyperparameters:")
 print(f"* Learning Rate:  {param_color}{LR}{Style.RESET_ALL}")
-print(f"* Batch Size:\t  {param_color}{BATCH_SIZE}{Style.RESET_ALL}")
-print(f"* Buffer Size:\t  {param_color}{BUFFER_SIZE}{Style.RESET_ALL}")
-print(f"* Gamma:\t  {param_color}{GAMMA}{Style.RESET_ALL}")
-print(f"* Eps Start:\t  {param_color}{EPS_START}{Style.RESET_ALL}")
-print(f"* Eps End:\t  {param_color}{EPS_END}{Style.RESET_ALL}")
-print(f"* Eps Decay:\t  {param_color}{EPS_DECAY}{Style.RESET_ALL}")
-print(f"* Episodes:\t  {param_color}{N_EPISODES}{Style.RESET_ALL}")
-print(f"* Max Steps:\t  {param_color}{MAX_STEPS}{Style.RESET_ALL}")
-print(f"* Warm Up:\t  {param_color}{WARM_UP}{Style.RESET_ALL}")
-print(f"* Target Update:  {param_color}{TARGET_UPDATE}{Style.RESET_ALL}")
-print("")
+print(f"* Batch Size:     {param_color}{BATCH_SIZE}{Style.RESET_ALL}")
+print(f"* Buffer Size:    {param_color}{BUFFER_SIZE}{Style.RESET_ALL}")
+print(f"* Gamma:          {param_color}{GAMMA}{Style.RESET_ALL}")
+print(f"* Eps Start:      {param_color}{EPS_START}{Style.RESET_ALL}")
+print(f"* Eps End:        {param_color}{EPS_END}{Style.RESET_ALL}")
+print(f"* Eps Decay:      {param_color}{EPS_DECAY}{Style.RESET_ALL}")
+print(f"* Episodes:       {param_color}{N_EPISODES}{Style.RESET_ALL}")
+print(f"* Max Steps:      {param_color}{MAX_STEPS}{Style.RESET_ALL}")
+print(f"* Warm Up:        {param_color}{WARM_UP}{Style.RESET_ALL}")
+print(f"* Target Update:  {param_color}{TARGET_UPDATE}{Style.RESET_ALL}\n")
 
 # visualization
 VIS_TRAIN = args.vv
@@ -88,16 +87,16 @@ TASK_NAME = args.task_name
 
 # env changes
 print("CartPole Parameters:")
-print("* Gravity:\t", end="")
+print("* Gravity:\t  ", end="")
 print((Fore.GREEN + str(env.gravity)) if env.gravity == args.gravity else (Fore.RED + str(args.gravity)))
 print(Style.RESET_ALL, end="")
-print("* Mass Cart:\t", end="")
+print("* Mass Cart:\t  ", end="")
 print((Fore.GREEN + str(env.masscart)) if env.masscart == args.mass_cart else (Fore.RED + str(args.mass_cart)))
 print(Style.RESET_ALL, end="")
-print("* Mass Pole:\t", end="")
+print("* Mass Pole:\t  ", end="")
 print((Fore.GREEN + str(env.masspole)) if env.masspole == args.mass_pole else (Fore.RED + str(args.mass_pole)))
 print(Style.RESET_ALL, end="")
-print("* Pole Length:\t", end="")
+print("* Pole Length:\t  ", end="")
 print((Fore.GREEN + str(env.length)) if env.length == args.pole_length else (Fore.RED + str(args.pole_length)))
 print(Style.RESET_ALL)
 
@@ -162,4 +161,3 @@ if SAVE_AGENT:
 
     with open(agent_dir / agent_file, "wb") as f:
         pickle.dump(agent, f)
-

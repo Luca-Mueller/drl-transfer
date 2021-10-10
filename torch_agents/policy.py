@@ -24,7 +24,7 @@ class Policy(ABC):
     def _select_action(self, state):
         raise NotImplementedError
 
-    def __str__(self):
+    def __repr__(self):
         return self.name
 
 
