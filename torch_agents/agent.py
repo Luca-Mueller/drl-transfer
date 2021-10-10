@@ -284,29 +284,3 @@ class DQVAgent(Agent):
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
         self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
-
-
-# Test
-if __name__ == "__main__":
-    import gym
-    import torch
-    import torch.optim as optim
-
-    from torch_agents.models import DQN
-
-    env = gym.make('CartPole-v0').unwrapped
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    n_observations = env.observation_space.shape[0]
-    n_actions = env.action_space.n
-
-    policy_net = DQN(n_observations, n_actions).to(device)
-    optimizer = optim.RMSprop
-    memory = SimpleReplayBuffer(500, Transition)
-    policy = EpsilonGreedyPolicy(policy_net, device)
-    observer = BufferObserver(memory)
-
-    agent = DQNAgent(policy_net, memory, policy, optimizer, observer, device=device)
-    agent.train(env, 5, 100, visualize=True)
-    agent.play(env, 10, 200)

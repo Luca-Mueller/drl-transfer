@@ -64,4 +64,3 @@ class EpsilonGreedyPolicy(Policy):
         else:
             action = torch.tensor([[random.randrange(self.n_actions)]], device=self.device, dtype=torch.long)
         return action
-

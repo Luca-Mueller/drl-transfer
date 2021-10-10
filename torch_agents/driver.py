@@ -68,19 +68,3 @@ class SimpleDriver(Driver):
         self._acc_reward = 0
         observation = self.env.reset()
         self.state = torch.tensor(observation, device=self.device, dtype=torch.float32).unsqueeze(0)
-
-
-# Test
-if __name__ == "__main__":
-    import gym
-    from torch_agents.policy import RandomPolicy
-    from torch_agents.replay_buffer import SimpleReplayBuffer
-    from torch_agents.observer import BufferObserver
-
-    t_env = gym.make('CartPole-v0').unwrapped
-    t_policy = RandomPolicy(3)
-    t_buffer = SimpleReplayBuffer(1000)
-    t_observer = BufferObserver(t_buffer)
-    t_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    t_driver = SimpleDriver(t_env, t_policy, t_observer, t_device)

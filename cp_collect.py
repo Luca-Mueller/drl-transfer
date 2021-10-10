@@ -135,8 +135,7 @@ while len(transfer_buffer) < BUFFER_SIZE:
     with no_print():
         test_scores = agent.play(env, 1, env.spec.max_episode_steps, observer=transfer_observer, visualize=VIS_EVAL)
     print(f"\rBufferSize: {len(transfer_buffer):>6}/{BUFFER_SIZE:<6}", end="")
-print("")
-print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
+print(Fore.GREEN + "\nDone\n" + Style.RESET_ALL)
 
 
 # save buffer
