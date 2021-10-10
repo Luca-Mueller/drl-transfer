@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from collections import deque, namedtuple
+import copy
 import random
 from typing import Union
 
@@ -63,11 +64,11 @@ class SplitReplayBuffer(ReplayBuffer):
     def __init__(self, capacity: int, transfer_buffer: Union[ReplayBuffer, deque, list], *args, **kwargs):
         super(SplitReplayBuffer, self).__init__(*args, **kwargs)
         if isinstance(transfer_buffer, ReplayBuffer):
-            self.transfer_memory = list(transfer_buffer.memory)
+            self.transfer_memory = copy.deepcopy(list(transfer_buffer.memory))
         elif isinstance(transfer_buffer, deque):
-            self.transfer_memory = list(transfer_buffer)
+            self.transfer_memory = copy.deepcopy(list(transfer_buffer))
         elif isinstance(transfer_buffer, list):
-            self.transfer_memory = transfer_buffer
+            self.transfer_memory = copy.deepcopy(transfer_buffer)
         self.memory = deque([], maxlen=capacity)
         self.capacity = capacity
         self.name = "SplitReplayBuffer"
@@ -86,11 +87,11 @@ class FilledReplayBuffer(ReplayBuffer):
         super(FilledReplayBuffer, self).__init__(*args, **kwargs)
         assert len(transfer_buffer) >= capacity, "transfer buffer too small: needs to be at least same as capacity"
         if isinstance(transfer_buffer, ReplayBuffer):
-            transfer_memory = list(transfer_buffer.memory)
+            transfer_memory = copy.deepcopy(list(transfer_buffer.memory))
         elif isinstance(transfer_buffer, deque):
-            transfer_memory = list(transfer_buffer)
+            transfer_memory = copy.deepcopy(list(transfer_buffer))
         elif isinstance(transfer_buffer, list):
-            transfer_memory = transfer_buffer
+            transfer_memory = copy.deepcopy(transfer_buffer)
         random.shuffle(transfer_memory)
         self.memory = deque(transfer_memory[:capacity], maxlen=capacity)
         self.capacity = capacity

@@ -27,7 +27,7 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-E", "--epsilon-end", type=float, default=0.01, help="final epsilon for EG policy (0.01)")
         self.add_argument("-d", "--epsilon-decay", type=float, default=0.995, help="epsilon decay for EG policy (0.995)")
         self.add_argument("-e", "--episodes", type=int, default=200, help="N training episodes (200)")
-        self.add_argument("-s", "--max_steps", type=int, default=None, help="max training steps per episode (inf)")
+        self.add_argument("-s", "--max-steps", type=int, default=None, help="max training steps per episode (inf)")
         self.add_argument("-w", "--warm-up", type=int, default=0, help="N training steps collected before training "
                                                                        "starts (0)")
         self.add_argument("-t", "--target-update", type=int, default=10, help="N episodes after which the target "
@@ -50,6 +50,7 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("--limited-buffer", action="store_true", help="stop collecting after buffer is full")
         self.add_argument("-r", "--repetitions", type=int, default=5, help="number of training cycles per agent (5)")
         self.add_argument("-T", "--test-every", type=int, default=10, help="test interval (10)")
+        self.add_argument("--max-eval", type=int, default=None, help="max number of steps during evaluation (None)")
 
     def add_cartpole_args(self):
         self.add_argument("-G", "--gravity", type=float, default=9.8, help="env gravity (9.8)")

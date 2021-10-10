@@ -89,6 +89,7 @@ WARM_UP = args.warm_up
 TARGET_UPDATE = args.target_update
 REPETITIONS = args.repetitions
 TEST_EVERY = args.test_every
+MAX_EVAL = args.max_eval
 
 param_color = Fore.YELLOW
 print("Agent Hyperparameters:")
@@ -106,7 +107,8 @@ print(f"* Target Update:  {param_color}{TARGET_UPDATE}{Style.RESET_ALL}\n")
 
 print("Transfer Parameters:")
 print(f"* Repetitions:    {param_color}{REPETITIONS}{Style.RESET_ALL}")
-print(f"* Test Every:     {param_color}{TEST_EVERY}{Style.RESET_ALL}\n")
+print(f"* Test Every:     {param_color}{TEST_EVERY}{Style.RESET_ALL}")
+print(f"* Max Eval:       {param_color}{MAX_EVAL}{Style.RESET_ALL}\n")
 
 # visualization
 VIS_TRAIN = args.vv
@@ -165,7 +167,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
         local_hist.append(episode_scores[0])
         for _ in range(N_EPISODES // TEST_EVERY):
             agent.train(env, TEST_EVERY, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP, visualize=VIS_TRAIN)
-            episode_scores = agent.play(env, 1, visualize=VIS_EVAL)
+            episode_scores = agent.play(env, 1, MAX_EVAL, visualize=VIS_EVAL)
             local_hist.append(episode_scores[0])
 
     return np.array(local_hist)
