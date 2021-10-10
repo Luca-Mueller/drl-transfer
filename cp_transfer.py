@@ -114,6 +114,8 @@ print(f"* Max Eval:       {param_color}{MAX_EVAL}{Style.RESET_ALL}\n")
 VIS_TRAIN = args.vv
 VIS_EVAL = args.v or args.vv
 
+TASK_NAME = args.task_name
+
 # env changes
 print("CartPole Parameters:")
 print("* Gravity:\t  ", end="")
@@ -205,4 +207,6 @@ with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
 # plot history
-plot_transfer_history(history_file)
+fig = plot_transfer_history(history_file, save=False)
+plot_dir = Path("plots") / TASK_NAME
+fig.savefig(plot_dir / (history_file[:-12] + "_transfer"))
