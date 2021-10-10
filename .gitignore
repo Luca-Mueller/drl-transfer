@@ -1,3 +1,21 @@
+# pickle files, model parameters, plots
+**/*.pickle
+**/*.pth
+**/*.png
+
+# data dirs
+agents/
+buffers/
+history/
+models/
+plots/
+
+# IDE stuff
+.idea/
+
+# notes
+notes*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
