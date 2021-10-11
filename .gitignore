@@ -13,8 +13,9 @@ plots/
 # IDE stuff
 .idea/
 
-# notes
+# other files
 notes*
+pl.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

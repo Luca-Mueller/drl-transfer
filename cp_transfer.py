@@ -47,14 +47,9 @@ elif args.agent == "DQV":
     agent_type = DQVAgent
     agent_color = Fore.LIGHTYELLOW_EX
 
-print("Agent:\t" + agent_color + args.agent + Style.RESET_ALL)
-
 # device
 if args.cpu:
     device = torch.device("cpu")
-
-device_color = Fore.LIGHTBLUE_EX if str(device) == "cpu" else Fore.LIGHTGREEN_EX
-print("Device:\t" + device_color + str(device).upper() + Style.RESET_ALL + "\n")
 
 # buffer options
 BUFFER_NAME = args.buffer_name
@@ -74,11 +69,6 @@ if MODEL_NAME and not MODEL_NAME.endswith(".pth"):
     MODEL_NAME += ".pth"
 MODEL_DIR = Path(args.model_dir)
 
-print("Buffer Transfer:  " + ((Fore.GREEN + "YES") if BUFFER_NAME else (Fore.RED + "NO")) + Style.RESET_ALL)
-print("Model  Transfer:  " + ((Fore.GREEN + "YES") if MODEL_NAME else (Fore.RED + "NO")) + Style.RESET_ALL)
-print("Double Transfer:  " + ((Fore.GREEN + "YES") if BUFFER_NAME and MODEL_NAME else (Fore.RED + "NO")))
-print(Style.RESET_ALL)
-
 # hyperparameters
 LR = args.lr
 BATCH_SIZE = args.batch_size
@@ -95,44 +85,18 @@ REPETITIONS = args.repetitions
 TEST_EVERY = args.test_every
 MAX_EVAL = args.max_eval
 
-param_color = Fore.YELLOW
-print("Agent Hyperparameters:")
-print(f"* Learning Rate:  {param_color}{LR}{Style.RESET_ALL}")
-print(f"* Batch Size:     {param_color}{BATCH_SIZE}{Style.RESET_ALL}")
-print(f"* Buffer Size:    {param_color}{BUFFER_SIZE}{Style.RESET_ALL}")
-print(f"* Gamma:          {param_color}{GAMMA}{Style.RESET_ALL}")
-print(f"* Eps Start:      {param_color}{EPS_START}{Style.RESET_ALL}")
-print(f"* Eps End:        {param_color}{EPS_END}{Style.RESET_ALL}")
-print(f"* Eps Decay:      {param_color}{EPS_DECAY}{Style.RESET_ALL}")
-print(f"* Episodes:       {param_color}{N_EPISODES}{Style.RESET_ALL}")
-print(f"* Max Steps:      {param_color}{MAX_STEPS}{Style.RESET_ALL}")
-print(f"* Warm Up:        {param_color}{WARM_UP}{Style.RESET_ALL}")
-print(f"* Target Update:  {param_color}{TARGET_UPDATE}{Style.RESET_ALL}\n")
-
-print("Transfer Parameters:")
-print(f"* Repetitions:    {param_color}{REPETITIONS}{Style.RESET_ALL}")
-print(f"* Test Every:     {param_color}{TEST_EVERY}{Style.RESET_ALL}")
-print(f"* Max Eval:       {param_color}{MAX_EVAL}{Style.RESET_ALL}\n")
-
 # visualization
 VIS_TRAIN = args.vv
 VIS_EVAL = args.v or args.vv
 
-# env changes
-print("CartPole Parameters:")
-print("* Gravity:\t  ", end="")
-print((Fore.GREEN + str(env.gravity)) if env.gravity == args.gravity else (Fore.RED + str(args.gravity)))
-print(Style.RESET_ALL, end="")
-print("* Mass Cart:\t  ", end="")
-print((Fore.GREEN + str(env.masscart)) if env.masscart == args.mass_cart else (Fore.RED + str(args.mass_cart)))
-print(Style.RESET_ALL, end="")
-print("* Mass Pole:\t  ", end="")
-print((Fore.GREEN + str(env.masspole)) if env.masspole == args.mass_pole else (Fore.RED + str(args.mass_pole)))
-print(Style.RESET_ALL, end="")
-print("* Pole Length:\t  ", end="")
-print((Fore.GREEN + str(env.length)) if env.length == args.pole_length else (Fore.RED + str(args.pole_length)))
-print(Style.RESET_ALL)
+# print info
+arg_parser.print_agent(str(args.agent))
+arg_parser.print_device(str(device))
+arg_parser.print_transfer_args(BUFFER_NAME, MODEL_NAME)
+arg_parser.print_args(args)
+arg_parser.print_cp_args(args, env)
 
+# env changes
 env.gravity = args.gravity
 env.masscart = args.mass_cart
 env.masspole = args.mass_pole
@@ -192,7 +156,6 @@ for i in tqdm(range(REPETITIONS)):
     if BUFFER_NAME and MODEL_NAME:
         double_transfer_agent_hist.append(train_agent(buffer_transfer=True, model_transfer=True))
 print(Style.RESET_ALL, end="")
-
 
 # save history
 hist = {"default": np.array(default_agent_hist), "x": np.arange(len(default_agent_hist[0])) * TEST_EVERY}

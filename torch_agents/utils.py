@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from colorama import init, Fore, Style
 import sys
 import os
 import argparse
@@ -57,3 +58,62 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-m", "--mass-cart", type=float, default=1.0, help="mass of the cart (1.0)")
         self.add_argument("-M", "--mass-pole", type=float, default=0.1, help="mass of the pole (0.1)")
         self.add_argument("-p", "--pole-length", type=float, default=0.5, help="length of the pole (default 0.5)")
+
+    @staticmethod
+    def print_agent(agent: str):
+        if agent == "DQN":
+            agent_color = Fore.LIGHTCYAN_EX
+        elif agent == "DDQN":
+            agent_color = Fore.LIGHTMAGENTA_EX
+        elif agent == "DQV":
+            agent_color = Fore.LIGHTYELLOW_EX
+        else:
+            return
+
+        print("Agent:\t" + agent_color + agent + Style.RESET_ALL)
+
+    @staticmethod
+    def print_device(device: str):
+        device_color = Fore.LIGHTBLUE_EX if device == "cpu" else Fore.LIGHTGREEN_EX
+        print("Device:\t" + device_color + str(device).upper() + Style.RESET_ALL + "\n")
+
+    @staticmethod
+    def print_args(args):
+        init()
+        param_color = Fore.YELLOW
+        print("Agent Hyperparameters:")
+        print(f"* Learning Rate:  {param_color}{args.lr}{Style.RESET_ALL}")
+        print(f"* Batch Size:     {param_color}{args.batch_size}{Style.RESET_ALL}")
+        print(f"* Buffer Size:    {param_color}{args.buffer_size}{Style.RESET_ALL}")
+        print(f"* Gamma:          {param_color}{args.gamma}{Style.RESET_ALL}")
+        print(f"* Eps Start:      {param_color}{args.epsilon_start}{Style.RESET_ALL}")
+        print(f"* Eps End:        {param_color}{args.epsilon_end}{Style.RESET_ALL}")
+        print(f"* Eps Decay:      {param_color}{args.epsilon_decay}{Style.RESET_ALL}")
+        print(f"* Episodes:       {param_color}{args.episodes}{Style.RESET_ALL}")
+        print(f"* Max Steps:      {param_color}{args.max_steps}{Style.RESET_ALL}")
+        print(f"* Warm Up:        {param_color}{args.warm_up}{Style.RESET_ALL}")
+        print(f"* Target Update:  {param_color}{args.target_update}{Style.RESET_ALL}\n")
+
+    @staticmethod
+    def print_cp_args(args, env):
+        init()
+        print("CartPole Parameters:")
+        print("* Gravity:\t  ", end="")
+        print((Fore.GREEN + str(env.gravity)) if env.gravity == args.gravity else (Fore.RED + str(args.gravity)))
+        print(Style.RESET_ALL, end="")
+        print("* Mass Cart:\t  ", end="")
+        print((Fore.GREEN + str(env.masscart)) if env.masscart == args.mass_cart else (Fore.RED + str(args.mass_cart)))
+        print(Style.RESET_ALL, end="")
+        print("* Mass Pole:\t  ", end="")
+        print((Fore.GREEN + str(env.masspole)) if env.masspole == args.mass_pole else (Fore.RED + str(args.mass_pole)))
+        print(Style.RESET_ALL, end="")
+        print("* Pole Length:\t  ", end="")
+        print((Fore.GREEN + str(env.length)) if env.length == args.pole_length else (Fore.RED + str(args.pole_length)))
+        print(Style.RESET_ALL)
+
+    @staticmethod
+    def print_transfer_args(buffer_name: bool, model_name: bool):
+        print("Buffer Transfer:  " + ((Fore.GREEN + "YES") if buffer_name else (Fore.RED + "NO")) + Style.RESET_ALL)
+        print("Model  Transfer:  " + ((Fore.GREEN + "YES") if model_name else (Fore.RED + "NO")) + Style.RESET_ALL)
+        print("Double Transfer:  " + ((Fore.GREEN + "YES") if buffer_name and model_name else (Fore.RED + "NO")))
+        print(Style.RESET_ALL)

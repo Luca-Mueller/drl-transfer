@@ -27,27 +27,19 @@ arg_parser.add_collect_args()
 args = arg_parser.parse_args()
 
 # agent type
+assert args.agent in ["DQN", "DDQN", "DQV"], f"invalid agent type '{args.agent}'"
+
+# agent type
 if args.agent == "DQN":
     agent_type = DQNAgent
-    agent_color = Fore.LIGHTCYAN_EX
 elif args.agent == "DDQN":
     agent_type = DDQNAgent
-    agent_color = Fore.LIGHTMAGENTA_EX
 elif args.agent == "DQV":
     agent_type = DQVAgent
-    agent_color = Fore.LIGHTYELLOW_EX
-else:
-    print("Error: invalid agent type")
-    exit(-1)
-
-print("Agent:\t" + agent_color + args.agent + Style.RESET_ALL)
 
 # device
 if args.cpu:
     device = torch.device("cpu")
-
-device_color = Fore.LIGHTBLUE_EX if str(device) == "cpu" else Fore.LIGHTGREEN_EX
-print("Device:\t" + device_color + str(device).upper() + Style.RESET_ALL + "\n")
 
 # hyperparameters
 LR = args.lr
@@ -62,20 +54,6 @@ MAX_STEPS = args.max_steps
 WARM_UP = args.warm_up
 TARGET_UPDATE = args.target_update
 
-param_color = Fore.YELLOW
-print("Agent Hyperparameters:")
-print(f"* Learning Rate:  {param_color}{LR}{Style.RESET_ALL}")
-print(f"* Batch Size:     {param_color}{BATCH_SIZE}{Style.RESET_ALL}")
-print(f"* Buffer Size:    {param_color}{BUFFER_SIZE}{Style.RESET_ALL}")
-print(f"* Gamma:          {param_color}{GAMMA}{Style.RESET_ALL}")
-print(f"* Eps Start:      {param_color}{EPS_START}{Style.RESET_ALL}")
-print(f"* Eps End:        {param_color}{EPS_END}{Style.RESET_ALL}")
-print(f"* Eps Decay:      {param_color}{EPS_DECAY}{Style.RESET_ALL}")
-print(f"* Episodes:       {param_color}{N_EPISODES}{Style.RESET_ALL}")
-print(f"* Max Steps:      {param_color}{MAX_STEPS}{Style.RESET_ALL}")
-print(f"* Warm Up:        {param_color}{WARM_UP}{Style.RESET_ALL}")
-print(f"* Target Update:  {param_color}{TARGET_UPDATE}{Style.RESET_ALL}\n")
-
 # visualization
 VIS_TRAIN = args.vv
 VIS_EVAL = args.v or args.vv
@@ -85,21 +63,13 @@ SAVE_MODEL = args.save_model
 SAVE_AGENT = args.save_agent
 TASK_NAME = args.task_name
 
-# env changes
-print("CartPole Parameters:")
-print("* Gravity:\t  ", end="")
-print((Fore.GREEN + str(env.gravity)) if env.gravity == args.gravity else (Fore.RED + str(args.gravity)))
-print(Style.RESET_ALL, end="")
-print("* Mass Cart:\t  ", end="")
-print((Fore.GREEN + str(env.masscart)) if env.masscart == args.mass_cart else (Fore.RED + str(args.mass_cart)))
-print(Style.RESET_ALL, end="")
-print("* Mass Pole:\t  ", end="")
-print((Fore.GREEN + str(env.masspole)) if env.masspole == args.mass_pole else (Fore.RED + str(args.mass_pole)))
-print(Style.RESET_ALL, end="")
-print("* Pole Length:\t  ", end="")
-print((Fore.GREEN + str(env.length)) if env.length == args.pole_length else (Fore.RED + str(args.pole_length)))
-print(Style.RESET_ALL)
+# print info
+arg_parser.print_agent(str(args.agent))
+arg_parser.print_device(str(device))
+arg_parser.print_args(args)
+arg_parser.print_cp_args(args, env)
 
+# env changes
 env.gravity = args.gravity
 env.masscart = args.mass_cart
 env.masspole = args.mass_pole
@@ -119,7 +89,7 @@ policy = EpsilonGreedyPolicy(model, device, eps_start=EPS_START, eps_end=EPS_END
 agent = agent_type(model, replay_buffer, policy, optimizer, loss_function, gamma=GAMMA,
                    target_update_period=TARGET_UPDATE, device=device)
 
-# Train
+# train
 print("Train...")
 episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP,
                              visualize=VIS_TRAIN)
@@ -127,7 +97,7 @@ print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
 
 plot_scores(episode_scores, title=(TASK_NAME + " " + agent.name + " Training"))
 
-# Test
+# test
 print("Evaluate...")
 print(f"Target Score: {env.spec.reward_threshold:.2f}")
 test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVAL)
@@ -135,6 +105,7 @@ test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVA
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
 plot_scores(test_scores, title=(TASK_NAME + " " + agent.name + " Test"))
 
+# build transfer buffer
 transfer_buffer = SimpleReplayBuffer(BUFFER_SIZE, Transition)
 transfer_observer = BufferObserver(transfer_buffer)
 
@@ -144,7 +115,6 @@ while len(transfer_buffer) < BUFFER_SIZE:
         test_scores = agent.play(env, 1, env.spec.max_episode_steps, observer=transfer_observer, visualize=VIS_EVAL)
     print(f"\rBufferSize: {len(transfer_buffer):>6}/{BUFFER_SIZE:<6}", end="")
 print(Fore.GREEN + "\nDone\n" + Style.RESET_ALL)
-
 
 # save buffer
 buffer_dir = Path("buffers") / TASK_NAME
