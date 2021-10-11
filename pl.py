@@ -26,7 +26,7 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
         sm_mean = savgol_filter(mean, 9, 5)
         std = savgol_filter(np.std(hist[key], axis=0), 9, 5)
 
-        plt.plot(x, sm_mean, label=key.replace("_", " "))
+        plt.plot(x, sm_mean, '-', label=key.replace("_", " "))
         plt.fill_between(x, sm_mean - std, sm_mean + std, alpha=0.2)
 
     plt.xlabel("Episodes")
@@ -45,4 +45,4 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
     return fig
 
 
-plot_transfer_history("cp_v0_DQN_200x10_hist.pickle")
+plot_transfer_history("cp_vL_DQN_200x500_hist.pickle", hist_dir=Path("history/cp_vL"))

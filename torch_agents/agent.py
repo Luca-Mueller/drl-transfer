@@ -52,7 +52,7 @@ class Agent(ABC):
     def _train(self, env, n_episodes: int, max_steps: int, batch_size: int, warm_up_period: int,
                visualize: bool) -> np.array:
         driver = SimpleDriver(env, RandomPolicy(self.policy_model.shape[1], self.device), self.observer, self.device)
-        for step in range(warm_up_period):
+        while len(self.replay_buffer) < warm_up_period:
             print(f"\rBufferSize: {len(self.replay_buffer):>6}/{self.replay_buffer.capacity:<6}", end="")
             driver.step()
 

@@ -27,6 +27,10 @@ arg_parser.add_cartpole_args()
 arg_parser.add_transfer_args()
 args = arg_parser.parse_args()
 
+# task
+TASK_NAME = args.task_name
+assert len(TASK_NAME) == 5, "task name should be exactly 5 letters (experiments.md.g. cp_v0)"
+
 # needs transfer buffer, transfer model or both
 assert args.buffer_name or args.model_name, "no buffer or model specified for transfer"
 
@@ -60,7 +64,7 @@ BUFFER_DIR = Path(args.buffer_dir)
 
 # load transfer buffer
 if BUFFER_NAME:
-    with open(BUFFER_DIR / BUFFER_NAME, "rb") as f:
+    with open(BUFFER_DIR / BUFFER_NAME[:5] / BUFFER_NAME, "rb") as f:
         transfer_buffer = pickle.load(f)
         transfer_buffer.to(device)
 
@@ -114,8 +118,6 @@ print(f"* Max Eval:       {param_color}{MAX_EVAL}{Style.RESET_ALL}\n")
 VIS_TRAIN = args.vv
 VIS_EVAL = args.v or args.vv
 
-TASK_NAME = args.task_name
-
 # env changes
 print("CartPole Parameters:")
 print("* Gravity:\t  ", end="")
@@ -150,7 +152,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
 
     model = DQN(n_observations, n_actions).to(device)
     if model_transfer:
-        model.load_state_dict(torch.load(MODEL_DIR / MODEL_NAME))
+        model.load_state_dict(torch.load(MODEL_DIR / MODEL_NAME[:5] / MODEL_NAME))
         model.eval()
     optimizer = optim.Adam(model.parameters(), lr=LR)
     loss_function = nn.MSELoss()
@@ -201,12 +203,12 @@ if len(model_transfer_agent_hist):
 if len(double_transfer_agent_hist):
     hist["double_transfer"] = np.array(double_transfer_agent_hist)
 
-history_dir = Path("history")
+history_dir = Path("history") / TASK_NAME
 history_file = args.task_name + "_" + args.agent + "_" + str(N_EPISODES) + "x" + str(MAX_STEPS) + "_hist.pickle"
 with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
 # plot history
-fig = plot_transfer_history(history_file, save=False)
+fig = plot_transfer_history(history_file, hist_dir=history_dir, save=False)
 plot_dir = Path("plots") / TASK_NAME
 fig.savefig(plot_dir / (history_file[:-12] + "_transfer"))

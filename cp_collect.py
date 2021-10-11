@@ -147,7 +147,7 @@ print(Fore.GREEN + "\nDone\n" + Style.RESET_ALL)
 
 
 # save buffer
-buffer_dir = Path("buffers")
+buffer_dir = Path("buffers") / TASK_NAME
 buffer_file = TASK_NAME + "_" + agent.name + "_buffer.pickle"
 print("Save buffer as:\t'" + buffer_file + "'")
 
@@ -156,7 +156,7 @@ with open(buffer_dir / buffer_file, "wb") as f:
 
 # save model
 if SAVE_MODEL:
-    model_dir = Path("models")
+    model_dir = Path("models") / TASK_NAME
     model_file = f"{TASK_NAME}_{agent.name}_{model.shape[0]}x{model.fc1_nodes}x{model.fc2_nodes}x{model.shape[1]}.pth"
     print("Save model as:\t'" + model_file + "'")
 
@@ -164,7 +164,7 @@ if SAVE_MODEL:
 
 # save agent
 if SAVE_AGENT:
-    agent_dir = Path("agents")
+    agent_dir = Path("agents") / TASK_NAME
     agent_file = TASK_NAME + "_" + agent.name + "_agent.pickle"
     print("Save agent as:\t'" + agent_file + "'")
 

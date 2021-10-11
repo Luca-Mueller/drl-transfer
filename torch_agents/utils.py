@@ -37,12 +37,12 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-vv", action="store_true", help="render training and evaluation")
 
     def add_collect_args(self):
+        self.add_argument("--task-name", type=str, default="cp_v0", help="5 letter task name (cp_v0)")
         self.add_argument("--save-model", action="store_true", help="store Q policy model")
         self.add_argument("--save-agent", action="store_true", help="store agent")
-        self.add_argument("--task-name", type=str, default="cp_v0", help="name of buffer file")
 
     def add_transfer_args(self):
-        self.add_argument("--task-name", type=str, default="cp_v0", help="name of buffer file")
+        self.add_argument("--task-name", type=str, default="cp_v0", help="5 letter task name (cp_v0)")
         self.add_argument("--buffer-name", type=str, default=None, help="name of buffer file")
         self.add_argument("--buffer-dir", type=str, default="buffers", help="name of buffer directory ('buffers')")
         self.add_argument("--model-name", type=str, default=None, help="name of model parameter file")
