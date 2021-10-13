@@ -14,7 +14,7 @@ from torch_agents.replay_buffer import Transition, SimpleReplayBuffer, SplitRepl
 from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent
 from torch_agents.plotting import plot_transfer_history
-from torch_agents.utils import no_print, AgentArgParser
+from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
@@ -90,11 +90,11 @@ VIS_TRAIN = args.vv
 VIS_EVAL = args.v or args.vv
 
 # print info
-arg_parser.print_agent(str(args.agent))
-arg_parser.print_device(str(device))
-arg_parser.print_transfer_args(BUFFER_NAME, MODEL_NAME)
-arg_parser.print_args(args)
-arg_parser.print_cp_args(args, env)
+ArgPrinter.print_agent(str(args.agent))
+ArgPrinter.print_device(str(device))
+ArgPrinter.print_transfer_args(BUFFER_NAME, MODEL_NAME)
+ArgPrinter.print_args(args)
+ArgPrinter.print_cp_args(args, env)
 
 # env changes
 env.gravity = args.gravity

@@ -19,6 +19,7 @@ def no_print():
 class AgentArgParser(argparse.ArgumentParser):
     def __init__(self):
         super(AgentArgParser, self).__init__()
+        init()  # colorama
         self.add_argument("-a", "--agent", type=str, default="DQN", help="the agent type (DQN, DDQN, DQV)")
         self.add_argument("-l", "--lr", type=float, default=0.001, help="learning rate (0.001)")
         self.add_argument("-b", "--batch-size", type=int, default=32, help="training batch size (32)")
@@ -59,6 +60,8 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-M", "--mass-pole", type=float, default=0.1, help="mass of the pole (0.1)")
         self.add_argument("-p", "--pole-length", type=float, default=0.5, help="length of the pole (default 0.5)")
 
+
+class ArgPrinter:
     @staticmethod
     def print_agent(agent: str):
         if agent == "DQN":
@@ -79,7 +82,6 @@ class AgentArgParser(argparse.ArgumentParser):
 
     @staticmethod
     def print_args(args):
-        init()
         param_color = Fore.YELLOW
         print("Agent Hyperparameters:")
         print(f"* Learning Rate:  {param_color}{args.lr}{Style.RESET_ALL}")
@@ -96,7 +98,6 @@ class AgentArgParser(argparse.ArgumentParser):
 
     @staticmethod
     def print_cp_args(args, env):
-        init()
         print("CartPole Parameters:")
         print("* Gravity:\t  ", end="")
         print((Fore.GREEN + str(env.gravity)) if env.gravity == args.gravity else (Fore.RED + str(args.gravity)))

@@ -13,7 +13,7 @@ from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.observer import BufferObserver
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent
 from torch_agents.plotting import plot_scores
-from torch_agents.utils import no_print, AgentArgParser
+from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
@@ -64,10 +64,10 @@ SAVE_AGENT = args.save_agent
 TASK_NAME = args.task_name
 
 # print info
-arg_parser.print_agent(str(args.agent))
-arg_parser.print_device(str(device))
-arg_parser.print_args(args)
-arg_parser.print_cp_args(args, env)
+ArgPrinter.print_agent(str(args.agent))
+ArgPrinter.print_device(str(device))
+ArgPrinter.print_args(args)
+ArgPrinter.print_cp_args(args, env)
 
 # env changes
 env.gravity = args.gravity

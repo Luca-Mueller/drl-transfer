@@ -10,7 +10,7 @@ from torch_agents.replay_buffer import Transition, SimpleReplayBuffer
 from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent
 from torch_agents.plotting import plot_scores
-from torch_agents.utils import AgentArgParser
+from torch_agents.utils import AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
@@ -55,10 +55,10 @@ VIS_TRAIN = args.vv
 VIS_EVAL = args.v or args.vv
 
 # print info
-arg_parser.print_agent(str(args.agent))
-arg_parser.print_device(str(device))
-arg_parser.print_args(args)
-arg_parser.print_cp_args(args, env)
+ArgPrinter.print_agent(str(args.agent))
+ArgPrinter.print_device(str(device))
+ArgPrinter.print_args(args)
+ArgPrinter.print_cp_args(args, env)
 
 # env changes
 env.gravity = args.gravity
@@ -80,7 +80,7 @@ policy = EpsilonGreedyPolicy(model, device, eps_start=EPS_START, eps_end=EPS_END
 agent = agent_type(model, replay_buffer, policy, optimizer, loss_function, gamma=GAMMA,
                    target_update_period=TARGET_UPDATE, device=device)
 
-# Train
+# train
 print("Train...")
 episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP,
                              visualize=VIS_TRAIN)
@@ -88,7 +88,7 @@ episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
 plot_scores(episode_scores, title=("CartPole-v0 " + agent.name + " Training"))
 
-# Test
+# test
 print("Evaluate...")
 print(f"Target Score: {env.spec.reward_threshold:.2f}")
 test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVAL)
