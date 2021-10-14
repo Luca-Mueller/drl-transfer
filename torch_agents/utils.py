@@ -70,6 +70,8 @@ class ArgPrinter:
             agent_color = Fore.LIGHTMAGENTA_EX
         elif agent == "DQV":
             agent_color = Fore.LIGHTYELLOW_EX
+        elif agent == "DQV2":
+            agent_color = Fore.LIGHTRED_EX
         else:
             return
 

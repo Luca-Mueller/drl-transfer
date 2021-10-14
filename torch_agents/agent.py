@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from itertools import count
 import copy
 import numpy as np
+import random
 
 import torch
 from torch import nn
 from torch import optim
 import torch.nn.functional as F
 
-from torch_agents.models import VModel
+from torch_agents.models import VModel, V2Model
 from torch_agents.replay_buffer import ReplayBuffer, SimpleReplayBuffer, Transition
 from torch_agents.policy import Policy, EpsilonGreedyPolicy, GreedyPolicy, RandomPolicy
 from torch_agents.driver import SimpleDriver
@@ -281,6 +282,67 @@ class DQVAgent(Agent):
         fc2_nodes = self.policy_model.fc2_nodes
 
         self.v_policy_model = VModel(n_observations, fc1_nodes, fc2_nodes).to(self.device)
+        self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
+        self.v_target_model.eval()
+        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
+
+
+class DQV2Agent(DQVAgent):
+    def __init__(self, *args, **kwargs):
+        super(DQV2Agent, self).__init__(*args, **kwargs)
+
+        self.name = "DQV2"
+
+    def _optimize(self, batch_size: int):
+        if len(self.replay_buffer) < batch_size:
+            return
+
+        transitions = self.replay_buffer.sample(batch_size)
+        batch = Transition(*zip(*transitions))
+
+        non_final_mask = torch.tensor(tuple(map(lambda s: s is not None,
+                                                batch.next_state)), device=self.device, dtype=torch.bool)
+        non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
+
+        state_batch = torch.cat(batch.state)
+        action_batch = torch.cat(batch.action)
+        reward_batch = torch.cat(batch.reward)
+
+        # compute TD targets
+        y_t = torch.zeros(batch_size, device=self.device)
+        y_t[non_final_mask] = self.v_target_model(non_final_next_states).squeeze(1).detach()
+        y_t = (self.gamma * y_t) + reward_batch
+        y_t = y_t.unsqueeze(1)
+
+        # predict Q(s_t, a_t) and V(s_t)
+        state_action_values = self.policy_model(state_batch).gather(1, action_batch)
+        state_values = self.v_policy_model(state_batch)
+
+        # calculate loss
+        l_theta = self.loss_function(state_action_values, y_t)
+        l_phi = self.loss_function(state_values, y_t)
+
+        if random.random() < 0.7:
+            # update Q model
+            self.optimizer.zero_grad()
+            l_theta.backward()
+
+            for param in self.policy_model.parameters():
+                param.grad.data.clamp_(-1, 1)
+
+            self.optimizer.step()
+        else:
+            # update V model
+            self.v_optimizer.zero_grad()
+            l_phi.backward()
+
+            for param in self.v_policy_model.parameters():
+                param.grad.data.clamp_(-1, 1)
+
+            self.v_optimizer.step()
+
+    def _build_v_model(self):
+        self.v_policy_model = V2Model(self.policy_model).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
         self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)

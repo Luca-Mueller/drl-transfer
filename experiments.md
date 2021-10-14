@@ -20,7 +20,7 @@
 - **Warm Up Steps:** _0_
 - **Target Update Period:** _10_
 
-#### Cart Pole Parameters:
+## Cart Pole Parameters:
 - **Gravity:** _9.8_
 - **Mass Cart:** _1.0_
 - **Mass Pole:** _0.1_
