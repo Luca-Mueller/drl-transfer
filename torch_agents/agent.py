@@ -2,16 +2,12 @@ from abc import ABC, abstractmethod
 from itertools import count
 import copy
 import numpy as np
-import random
-
 import torch
-from torch import nn
 from torch import optim
-import torch.nn.functional as F
 
 from torch_agents.models import VModel, V2Model
-from torch_agents.replay_buffer import ReplayBuffer, SimpleReplayBuffer, Transition
-from torch_agents.policy import Policy, EpsilonGreedyPolicy, GreedyPolicy, RandomPolicy
+from torch_agents.replay_buffer import ReplayBuffer, Transition
+from torch_agents.policy import Policy, GreedyPolicy, RandomPolicy
 from torch_agents.driver import SimpleDriver
 from torch_agents.observer import Observer, BufferObserver, DummyObserver
 
@@ -291,8 +287,7 @@ class DQV2Agent(DQVAgent):
     def __init__(self, *args, **kwargs):
         super(DQV2Agent, self).__init__(*args, **kwargs)
 
-        self.lr = 0.002
-        self.proba_q_update = 0.5
+        #self.proba_q_update = 0.5
         self.name = "DQV2"
 
     def _optimize(self, batch_size: int):
@@ -357,9 +352,7 @@ class DQV2Agent(DQVAgent):
         self.optimizer.step()
 
         # update V model
-        self.v_policy_model.fc1.weight.requires_grad = False
-        self.v_policy_model.fc2.weight.requires_grad = False
-
+        self.v_policy_model.freeze()
         state_values = self.v_policy_model(state_batch)
         l_phi = self.loss_function(state_values, y_t)
         self.v_optimizer.zero_grad()
@@ -369,9 +362,7 @@ class DQV2Agent(DQVAgent):
             param.grad.data.clamp_(-1, 1)
 
         self.v_optimizer.step()
-
-        self.v_policy_model.fc1.weight.requires_grad = True
-        self.v_policy_model.fc2.weight.requires_grad = True
+        self.v_policy_model.unfreeze()
 
     def _build_v_model(self):
         self.v_policy_model = V2Model(self.policy_model).to(self.device)

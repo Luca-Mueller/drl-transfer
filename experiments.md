@@ -2,6 +2,7 @@
 - DQN
 - DDQN
 - DQV
+- DQV2
 
 ## Envs:
 - cp_v0:   _CartPole-v0_  

@@ -12,7 +12,7 @@ import torch.optim as optim
 from torch_agents.models import DQN
 from torch_agents.replay_buffer import Transition, SimpleReplayBuffer, SplitReplayBuffer, FilledReplayBuffer
 from torch_agents.policy import EpsilonGreedyPolicy
-from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent
+from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent, DQV2Agent
 from torch_agents.plotting import plot_transfer_history
 from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
 
@@ -35,7 +35,7 @@ assert len(TASK_NAME) == 5, "task name should be exactly 5 letters (experiments.
 assert args.buffer_name or args.model_name, "no buffer or model specified for transfer"
 
 # agent type
-assert args.agent in ["DQN", "DDQN", "DQV"], f"invalid agent type '{args.agent}'"
+assert args.agent in ["DQN", "DDQN", "DQV", "DQV2"], f"invalid agent type '{args.agent}'"
 
 if args.agent == "DQN":
     agent_type = DQNAgent
@@ -46,6 +46,9 @@ elif args.agent == "DDQN":
 elif args.agent == "DQV":
     agent_type = DQVAgent
     agent_color = Fore.LIGHTYELLOW_EX
+elif args.agent == "DQV2":
+    agent_type = DQV2Agent
+    agent_color = Fore.LIGHTRED_EX
 
 # device
 if args.cpu:

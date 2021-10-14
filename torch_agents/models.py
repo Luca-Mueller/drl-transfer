@@ -59,3 +59,11 @@ class V2Model(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+    def freeze(self):
+        self.fc1.weight.requires_grad = False
+        self.fc2.weight.requires_grad = False
+
+    def unfreeze(self):
+        self.fc1.weight.requires_grad = True
+        self.fc2.weight.requires_grad = True

@@ -11,7 +11,7 @@ from torch_agents.models import DQN
 from torch_agents.replay_buffer import Transition, SimpleReplayBuffer
 from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.observer import BufferObserver
-from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent
+from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent, DQV2Agent
 from torch_agents.plotting import plot_scores
 from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
 
@@ -27,7 +27,7 @@ arg_parser.add_collect_args()
 args = arg_parser.parse_args()
 
 # agent type
-assert args.agent in ["DQN", "DDQN", "DQV"], f"invalid agent type '{args.agent}'"
+assert args.agent in ["DQN", "DDQN", "DQV", "DQV2"], f"invalid agent type '{args.agent}'"
 
 # agent type
 if args.agent == "DQN":
@@ -36,6 +36,8 @@ elif args.agent == "DDQN":
     agent_type = DDQNAgent
 elif args.agent == "DQV":
     agent_type = DQVAgent
+elif args.agent == "DQV2":
+    agent_type = DQV2Agent
 
 # device
 if args.cpu:
