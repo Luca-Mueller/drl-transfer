@@ -175,6 +175,4 @@ with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
 # plot history
-fig = plot_transfer_history(history_file, hist_dir=history_dir, save=False)
-plot_dir = Path("plots") / TASK_NAME
-fig.savefig(plot_dir / (history_file[:-12] + "_transfer"))
+fig = plot_transfer_history(history_file)
