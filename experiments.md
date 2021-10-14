@@ -35,6 +35,7 @@
     + DQN: -s 500 -w 200
     + DDQN: -s 500 -w 200
     + DQV: -s 500 -w 200 -S 0.5
+    + DQV2: -s 500 -w 200 -S 0.5 -t 5
 - **Transfer Params:**
     + -r 10
     + -T 2
@@ -49,6 +50,7 @@
     + DQN: -s 500 -w 200
     + DDQN: -s 500 -w 200
     + DQV: -s 500 -w 200 -S 0.5
+    + DQV2: -s 500 -w 200 -S 0.5 -t 5
 - **Transfer Params:**
     + -r 10
     + -T 2
