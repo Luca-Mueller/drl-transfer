@@ -15,6 +15,7 @@ plots/
 
 # other files
 notes*
+test*
 pl.py
 
 # Byte-compiled / optimized / DLL files
