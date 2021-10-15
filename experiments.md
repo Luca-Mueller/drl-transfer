@@ -4,6 +4,11 @@
 - DQV
 - DQV2
 
+## Networks:
+- MLP, 4x32x32x2 (Q) and 4x32x32x1 (V, V2)
+- **Optimizer:** _Adam_
+- **Loss:** _MSE_
+
 ## Envs:
 - cp_v0:   _CartPole-v0_  
 - cp_vL:   _cp_v0 -p 0.8_
