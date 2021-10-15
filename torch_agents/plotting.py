@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 import numpy as np
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, Union
 
 
 def plot_scores(scores, title: str = None, show: bool = True):
@@ -21,7 +21,7 @@ def plot_scores(scores, title: str = None, show: bool = True):
 
 
 def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title: str = None,
-                          ylim: Tuple[int, int] = None, show: bool = True, save: bool = True):
+                          ylim: Union[int, Tuple[int, int]] = None, show: bool = True, save: bool = True):
     if not filename.endswith(".pickle"):
         filename += ".pickle"
 
@@ -37,8 +37,8 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
 
     for key in hist:
         mean = np.mean(hist[key], axis=0)
-        sm_mean = savgol_filter(mean, 27, 5)
-        std = savgol_filter(np.std(hist[key], axis=0), 27, 5)
+        sm_mean = savgol_filter(mean, 27, 3)
+        std = savgol_filter(np.std(hist[key], axis=0), 27, 3)
 
         plt.plot(x, sm_mean, label=key.replace("_", " "))
         if ylim:
