@@ -209,15 +209,6 @@ class DDQNAgent(DQNAgent):
 class DQVAgent(Agent):
     def __init__(self, *args, **kwargs):
         super(DQVAgent, self).__init__(*args, **kwargs)
-
-        def loss(output, target):
-            error = torch.abs(target - output)
-            quadratic_part = torch.clamp(error, 0, 1)
-            linear_part = error - quadratic_part
-            loss = torch.mean(0.5 * torch.square(quadratic_part) + linear_part)
-            return loss
-
-        #self.loss_function = loss
         self.lr = self.optimizer.param_groups[0]['lr']
         self._build_v_model()
         self.name = "DQV"
@@ -286,8 +277,6 @@ class DQVAgent(Agent):
 class DQV2Agent(DQVAgent):
     def __init__(self, *args, **kwargs):
         super(DQV2Agent, self).__init__(*args, **kwargs)
-
-        #self.proba_q_update = 0.5
         self.name = "DQV2"
 
     def _optimize(self, batch_size: int):
@@ -310,35 +299,6 @@ class DQV2Agent(DQVAgent):
         y_t[non_final_mask] = self.v_target_model(non_final_next_states).squeeze(1).detach()
         y_t = (self.gamma * y_t) + reward_batch
         y_t = y_t.unsqueeze(1)
-
-        '''
-        # predict Q(s_t, a_t) and V(s_t)
-        state_action_values = self.policy_model(state_batch).gather(1, action_batch)
-        state_values = self.v_policy_model(state_batch)
-
-        # calculate loss
-        l_theta = self.loss_function(state_action_values, y_t)
-        l_phi = self.loss_function(state_values, y_t)
-
-        if random.random() < self.proba_q_update:
-            # update Q model
-            self.optimizer.zero_grad()
-            l_theta.backward()
-
-            for param in self.policy_model.parameters():
-                param.grad.data.clamp_(-1, 1)
-
-            self.optimizer.step()
-        else:
-            # update V model
-            self.v_optimizer.zero_grad()
-            l_phi.backward()
-
-            for param in self.v_policy_model.parameters():
-                param.grad.data.clamp_(-1, 1)
-
-            self.v_optimizer.step()
-        '''
 
         # update Q model
         state_action_values = self.policy_model(state_batch).gather(1, action_batch)
