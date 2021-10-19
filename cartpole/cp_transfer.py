@@ -18,7 +18,7 @@ from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
-env = gym.make('CartPole-v0').unwrapped
+env = gym.make('CartPole-v0')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
@@ -86,7 +86,6 @@ WARM_UP = args.warm_up
 TARGET_UPDATE = args.target_update
 REPETITIONS = args.repetitions
 TEST_EVERY = args.test_every
-MAX_EVAL = args.max_eval
 
 # visualization
 VIS_TRAIN = args.vv
@@ -97,7 +96,7 @@ ArgPrinter.print_agent(str(args.agent))
 ArgPrinter.print_device(str(device))
 ArgPrinter.print_transfer_args(BUFFER_NAME, MODEL_NAME)
 ArgPrinter.print_args(args)
-ArgPrinter.print_cp_args(args, env)
+ArgPrinter.print_cp_args(args)
 
 # env changes
 env.gravity = args.gravity
@@ -138,7 +137,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
         local_hist.append(episode_scores[0])
         for _ in range(N_EPISODES // TEST_EVERY):
             agent.train(env, TEST_EVERY, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP, visualize=VIS_TRAIN)
-            episode_scores = agent.play(env, 1, MAX_EVAL, visualize=VIS_EVAL)
+            episode_scores = agent.play(env, 1, visualize=VIS_EVAL)
             local_hist.append(episode_scores[0])
 
     return np.array(local_hist)

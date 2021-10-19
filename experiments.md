@@ -37,10 +37,10 @@
 - **Target Env:** _cp_vL_  
 - **Transfer:**   _Buffer, Model, Buffer + Model_  
 - **Collect Params:**
-    + DQN: -s 500 -w 200
-    + DDQN: -s 500 -w 200
-    + DQV: -s 500 -w 200 -S 0.5
-    + DQV2: -s 500 -w 200 -S 0.5 -t 5
+    + DQN: -w 200
+    + DDQN: -w 200
+    + DQV: -w 200 -S 0.5
+    + DQV2: -w 200 -S 0.5 -t 5
 - **Transfer Params:**
     + -r 10
     + -T 2
@@ -52,10 +52,10 @@
 - **Target Env:** _cp_v0_  
 - **Transfer:**   _Buffer, Model, Buffer + Model_  
 - **Collect Params:**
-    + DQN: -s 500 -w 200
-    + DDQN: -s 500 -w 200
-    + DQV: -s 500 -w 200 -S 0.5
-    + DQV2: -s 500 -w 200 -S 0.5 -t 5
+    + DQN: -w 200
+    + DDQN: -w 200
+    + DQV: -w 200 -S 0.5
+    + DQV2: -w 200 -S 0.5 -t 5
 - **Transfer Params:**
     + -r 10
     + -T 2
