@@ -4,11 +4,11 @@
 **/*.png
 
 # data dirs
-agents/
-buffers/
-history/
-models/
-plots/
+cartpole/agents/
+cartpole/buffers/
+cartpole/history/
+cartpole/models/
+cartpole/plots/
 
 # IDE stuff
 .idea/

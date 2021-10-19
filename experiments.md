@@ -5,7 +5,7 @@
 - DQV2
 
 ## Networks:
-- MLP, 4x32x32x2 (Q) and 4x32x32x1 (V, V2)
+- **MLP:** _4x32x32x2 (Q) and 4x32x32x1 (V, V2)_
 - **Optimizer:** _Adam_
 - **Loss:** _MSE_
 
@@ -64,3 +64,12 @@
     
 #### Experiment 3:
 Limited Experience Replay
+- **Max New Trajectories:** _1,000_
+- cp_v0 --> cp_vL
+- cp_vL --> cp_v0
+- **Transfer:**   _Buffer, Model, Buffer + Model_
+- **Params::** _see Exp. 1 & 2_
+
+#### Experiment 4:
+- Exp. 1 & 2 for Acrobot
+- Exp. 1 & 2 for Mountain Car
