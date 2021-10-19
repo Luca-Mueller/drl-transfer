@@ -76,7 +76,7 @@ n_observations = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
 # build agent
-model = DQN(n_observations, n_actions, fc1_nodes=64, fc2_nodes=128).to(device)
+model = DQN(n_observations, n_actions, fc1_nodes=64, fc2_nodes=64).to(device)
 optimizer = optim.Adam(model.parameters(), lr=LR)
 loss_function = nn.MSELoss()
 replay_buffer = SimpleReplayBuffer(BUFFER_SIZE, Transition)

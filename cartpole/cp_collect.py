@@ -69,7 +69,7 @@ TASK_NAME = args.task_name
 ArgPrinter.print_agent(str(args.agent))
 ArgPrinter.print_device(str(device))
 ArgPrinter.print_args(args)
-ArgPrinter.print_cp_args(args, env)
+ArgPrinter.print_cp_args(args)
 
 # env changes
 env.gravity = args.gravity

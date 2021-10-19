@@ -169,9 +169,9 @@ if len(double_transfer_agent_hist):
     hist["double_transfer"] = np.array(double_transfer_agent_hist)
 
 history_dir = Path("history") / TASK_NAME
-history_file = args.task_name + "_" + args.agent + "_" + str(N_EPISODES) + "x" + str(MAX_STEPS) + "_hist.pickle"
+history_file = args.task_name + "_" + args.agent + "_" + str(N_EPISODES) + "eps_hist.pickle"
 with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
 # plot history
-fig = plot_transfer_history(history_file)
+plot_transfer_history(history_file, ylim=(0, 200))

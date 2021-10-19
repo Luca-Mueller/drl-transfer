@@ -24,7 +24,7 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-l", "--lr", type=float, default=0.001, help="learning rate (0.001)")
         self.add_argument("-b", "--batch-size", type=int, default=32, help="training batch size (32)")
         self.add_argument("-B", "--buffer-size", type=int, default=10_000, help="size of replay buffer (10,000)")
-        self.add_argument("-g", "--gamma", type=float, default=0.95, help="discount factor (0.95)")
+        self.add_argument("-g", "--gamma", type=float, default=0.99, help="discount factor (0.99)")
         self.add_argument("-S", "--epsilon-start", type=float, default=0.9, help="initial epsilon for EG policy (0.9)")
         self.add_argument("-E", "--epsilon-end", type=float, default=0.01, help="final epsilon for EG policy (0.01)")
         self.add_argument("-d", "--epsilon-decay", type=float, default=0.995, help="epsilon decay for EG policy (0.995)")
@@ -52,7 +52,6 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("--limited-buffer", action="store_true", help="stop collecting after buffer is full")
         self.add_argument("-r", "--repetitions", type=int, default=5, help="number of training cycles per agent (5)")
         self.add_argument("-T", "--test-every", type=int, default=10, help="test interval (10)")
-        self.add_argument("--max-eval", type=int, default=None, help="max number of steps during evaluation (None)")
 
     def add_cartpole_args(self):
         self.add_argument("-G", "--gravity", type=float, default=9.8, help="env gravity (9.8)")
@@ -68,6 +67,8 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("--link-com1", type=float, default=0.5, help="link one center of mass (0.5)")
         self.add_argument("--link-com2", type=float, default=0.5, help="link two center of mass (0.5)")
         self.add_argument("--link-moi", type=float, default=1.0, help="link moment of inertia (1.0)")
+
+    #TODO: add mountaincar args
 
 
 class ArgPrinter:
@@ -137,7 +138,7 @@ class ArgPrinter:
         print("* Link Length 1:  ", end="")
         print((Fore.GREEN if LINK_LENGTH_1 == args.link_len1 else Fore.RED) + str(args.link_len1) + Style.RESET_ALL)
         print("* Link Length 2:  ", end="")
-        print((Fore.GREEN if LINK_LENGTH_2 == args.link_len1 else Fore.RED) + str(args.link_len2) + Style.RESET_ALL)
+        print((Fore.GREEN if LINK_LENGTH_2 == args.link_len2 else Fore.RED) + str(args.link_len2) + Style.RESET_ALL)
         print("* Link Mass 1:\t  ", end="")
         print((Fore.GREEN if LINK_MASS_1 == args.link_mass1 else Fore.RED) + str(args.link_mass1) + Style.RESET_ALL)
         print("* Link Mass 2:\t  ", end="")
