@@ -189,7 +189,9 @@ class DDQNAgent(DQNAgent):
         reward_batch = torch.cat(batch.reward)
 
         state_action_values = self.policy_model(state_batch).gather(1, action_batch)
-        max_action_values = self.policy_model(non_final_next_states).max(1)[1].unsqueeze(1)
+
+        with torch.no_grad():
+            max_action_values = self.policy_model(non_final_next_states).max(1)[1].unsqueeze(1)
 
         next_state_values = torch.zeros(batch_size, device=self.device)
         next_state_values[non_final_mask] = self.target_model(non_final_next_states).gather(1, max_action_values).reshape(-1)
