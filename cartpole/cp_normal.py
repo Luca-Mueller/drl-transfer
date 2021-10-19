@@ -14,7 +14,7 @@ from torch_agents.utils import AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
-env = gym.make('CartPole-v0').unwrapped
+env = gym.make('CartPole-v0')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
