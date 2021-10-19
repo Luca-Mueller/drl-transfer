@@ -14,12 +14,12 @@ from torch_agents.utils import AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
-env = gym.make('CartPole-v0').unwrapped
+env = gym.make('Acrobot-v1').unwrapped
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
 arg_parser = AgentArgParser()
-arg_parser.add_cartpole_args()
+arg_parser.add_acrobot_args()
 args = arg_parser.parse_args()
 
 # agent type
@@ -60,13 +60,16 @@ VIS_EVAL = args.v or args.vv
 ArgPrinter.print_agent(str(args.agent))
 ArgPrinter.print_device(str(device))
 ArgPrinter.print_args(args)
-ArgPrinter.print_cp_args(args)
+ArgPrinter.print_acrobot_args(args)
 
 # env changes
-env.gravity = args.gravity
-env.masscart = args.mass_cart
-env.masspole = args.mass_pole
-env.length = args.pole_length
+env.LINK_LENGTH_1 = args.link_len1
+env.LINK_LENGTH_2 = args.link_len2
+env.LINK_MASS_1 = args.link_mass1
+env.LINK_MASS_2 = args.link_mass2
+env.LINK_COM_POS_1 = args.link_com1
+env.LINK_COM_POS_2 = args.link_com2
+env.LINK_MOI = args.link_moi
 
 # state / action dims
 n_observations = env.observation_space.shape[0]
@@ -88,7 +91,7 @@ episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, 
                              visualize=VIS_TRAIN)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
-plot_scores(episode_scores, title=("CartPole-v0 " + agent.name + " Training"))
+plot_scores(episode_scores, title=("Acrobot-v1 " + agent.name + " Training"))
 
 # test
 print("Evaluate...")
@@ -96,4 +99,4 @@ print(f"Target Score: {env.spec.reward_threshold:.2f}")
 test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVAL)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
-plot_scores(test_scores, title=("CartPole-v0 " + agent.name + " Test"))
+plot_scores(test_scores, title=("Acrobot-v1 " + agent.name + " Test"))

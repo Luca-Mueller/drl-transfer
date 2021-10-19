@@ -3,13 +3,6 @@
 **/*.pth
 **/*.png
 
-# data dirs
-cartpole/agents/
-cartpole/buffers/
-cartpole/history/
-cartpole/models/
-cartpole/plots/
-
 # IDE stuff
 .idea/
 

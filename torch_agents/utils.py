@@ -60,6 +60,15 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-M", "--mass-pole", type=float, default=0.1, help="mass of the pole (0.1)")
         self.add_argument("-p", "--pole-length", type=float, default=0.5, help="length of the pole (default 0.5)")
 
+    def add_acrobot_args(self):
+        self.add_argument("--link-len1", type=float, default=1.0, help="link one length (1.0)")
+        self.add_argument("--link-len2", type=float, default=1.0, help="link two length (1.0)")
+        self.add_argument("--link-mass1", type=float, default=1.0, help="link one mass (1.0)")
+        self.add_argument("--link-mass2", type=float, default=1.0, help="link two mass (1.0)")
+        self.add_argument("--link-com1", type=float, default=0.5, help="link one center of mass (0.5)")
+        self.add_argument("--link-com2", type=float, default=0.5, help="link two center of mass (0.5)")
+        self.add_argument("--link-moi", type=float, default=1.0, help="link moment of inertia (1.0)")
+
 
 class ArgPrinter:
     @staticmethod
@@ -99,20 +108,47 @@ class ArgPrinter:
         print(f"* Target Update:  {param_color}{args.target_update}{Style.RESET_ALL}\n")
 
     @staticmethod
-    def print_cp_args(args, env):
+    def print_cp_args(args):
+        GRAVITY = 9.8
+        MASS_CART = 1.0
+        MASS_POLE = 0.1
+        POLE_LENGTH = 0.5
         print("CartPole Parameters:")
         print("* Gravity:\t  ", end="")
-        print((Fore.GREEN + str(env.gravity)) if env.gravity == args.gravity else (Fore.RED + str(args.gravity)))
-        print(Style.RESET_ALL, end="")
+        print((Fore.GREEN if GRAVITY == args.gravity else Fore.RED) + str(args.gravity) + Style.RESET_ALL)
         print("* Mass Cart:\t  ", end="")
-        print((Fore.GREEN + str(env.masscart)) if env.masscart == args.mass_cart else (Fore.RED + str(args.mass_cart)))
-        print(Style.RESET_ALL, end="")
+        print((Fore.GREEN if MASS_CART == args.mass_cart else Fore.RED) + str(args.mass_cart) + Style.RESET_ALL)
         print("* Mass Pole:\t  ", end="")
-        print((Fore.GREEN + str(env.masspole)) if env.masspole == args.mass_pole else (Fore.RED + str(args.mass_pole)))
-        print(Style.RESET_ALL, end="")
+        print((Fore.GREEN if MASS_POLE == args.mass_pole else Fore.RED) + str(args.mass_pole) + Style.RESET_ALL)
         print("* Pole Length:\t  ", end="")
-        print((Fore.GREEN + str(env.length)) if env.length == args.pole_length else (Fore.RED + str(args.pole_length)))
-        print(Style.RESET_ALL)
+        print((Fore.GREEN if POLE_LENGTH == args.pole_length else Fore.RED) + str(args.pole_length) + Style.RESET_ALL)
+        print("")
+
+    @staticmethod
+    def print_acrobot_args(args):
+        LINK_LENGTH_1 = 1.0
+        LINK_LENGTH_2 = 1.0
+        LINK_MASS_1 = 1.0
+        LINK_MASS_2 = 1.0
+        LINK_COM_POS_1 = 0.5
+        LINK_COM_POS_2 = 0.5
+        LINK_MOI = 1.0
+        print("Acrobot Parameters:")
+        print("* Link Length 1:  ", end="")
+        print((Fore.GREEN if LINK_LENGTH_1 == args.link_len1 else Fore.RED) + str(args.link_len1) + Style.RESET_ALL)
+        print("* Link Length 2:  ", end="")
+        print((Fore.GREEN if LINK_LENGTH_2 == args.link_len1 else Fore.RED) + str(args.link_len2) + Style.RESET_ALL)
+        print("* Link Mass 1:\t  ", end="")
+        print((Fore.GREEN if LINK_MASS_1 == args.link_mass1 else Fore.RED) + str(args.link_mass1) + Style.RESET_ALL)
+        print("* Link Mass 2:\t  ", end="")
+        print((Fore.GREEN if LINK_MASS_2 == args.link_mass2 else Fore.RED) + str(args.link_mass2) + Style.RESET_ALL)
+        print("* Link COM Pos 1: ", end="")
+        print((Fore.GREEN if LINK_COM_POS_1 == args.link_com1 else Fore.RED) + str(args.link_com1) + Style.RESET_ALL)
+        print("* Link COM Pos 2: ", end="")
+        print((Fore.GREEN if LINK_COM_POS_2 == args.link_com2 else Fore.RED) + str(args.link_com2) + Style.RESET_ALL)
+        print("* Link MOI:\t  ", end="")
+        print((Fore.GREEN if LINK_MOI == args.link_moi else Fore.RED) + str(args.link_moi) + Style.RESET_ALL)
+        print("")
 
     @staticmethod
     def print_transfer_args(buffer_name: bool, model_name: bool):

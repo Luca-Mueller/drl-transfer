@@ -8,5 +8,5 @@ setup(name='torch_agents',
       author_email='muellerluca@gmx.de',
       license='MIT',
       packages=['torch_agents'],
-      install_requires=['torch', 'gym', 'numpy', 'colorama'],
+      install_requires=['torch', 'gym', 'numpy', 'colorama', 'scipy', 'matplotlib'],
       zip_safe=False)

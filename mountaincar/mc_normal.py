@@ -14,12 +14,11 @@ from torch_agents.utils import AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
-env = gym.make('CartPole-v0').unwrapped
+env = gym.make('MountainCar-v0').unwrapped
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
 arg_parser = AgentArgParser()
-arg_parser.add_cartpole_args()
 args = arg_parser.parse_args()
 
 # agent type
@@ -60,13 +59,9 @@ VIS_EVAL = args.v or args.vv
 ArgPrinter.print_agent(str(args.agent))
 ArgPrinter.print_device(str(device))
 ArgPrinter.print_args(args)
-ArgPrinter.print_cp_args(args)
 
 # env changes
-env.gravity = args.gravity
-env.masscart = args.mass_cart
-env.masspole = args.mass_pole
-env.length = args.pole_length
+
 
 # state / action dims
 n_observations = env.observation_space.shape[0]
@@ -88,7 +83,7 @@ episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, 
                              visualize=VIS_TRAIN)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
-plot_scores(episode_scores, title=("CartPole-v0 " + agent.name + " Training"))
+plot_scores(episode_scores, title=("MountainCar-v0 " + agent.name + " Training"))
 
 # test
 print("Evaluate...")
@@ -96,4 +91,4 @@ print(f"Target Score: {env.spec.reward_threshold:.2f}")
 test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVAL)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
-plot_scores(test_scores, title=("CartPole-v0 " + agent.name + " Test"))
+plot_scores(test_scores, title=("MountainCar-v0 " + agent.name + " Test"))
