@@ -18,12 +18,12 @@ from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
-env = gym.make('CartPole-v0').unwrapped
+env = gym.make('Acrobot-v1').unwrapped
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
 arg_parser = AgentArgParser()
-arg_parser.add_cartpole_args()
+arg_parser.add_acrobot_args()
 arg_parser.add_transfer_args()
 args = arg_parser.parse_args()
 
@@ -97,13 +97,16 @@ ArgPrinter.print_agent(str(args.agent))
 ArgPrinter.print_device(str(device))
 ArgPrinter.print_transfer_args(BUFFER_NAME, MODEL_NAME)
 ArgPrinter.print_args(args)
-ArgPrinter.print_cp_args(args)
+ArgPrinter.print_acrobot_args(args)
 
 # env changes
-env.gravity = args.gravity
-env.masscart = args.mass_cart
-env.masspole = args.mass_pole
-env.length = args.pole_length
+env.LINK_LENGTH_1 = args.link_len1
+env.LINK_LENGTH_2 = args.link_len2
+env.LINK_MASS_1 = args.link_mass1
+env.LINK_MASS_2 = args.link_mass2
+env.LINK_COM_POS_1 = args.link_com1
+env.LINK_COM_POS_2 = args.link_com2
+env.LINK_MOI = args.link_moi
 
 # state / action dims
 n_observations = env.observation_space.shape[0]

@@ -14,7 +14,7 @@ from torch_agents.utils import AgentArgParser, ArgPrinter
 
 # initialize color / gym / device
 init()
-env = gym.make('Acrobot-v1')
+env = gym.make('Acrobot-v1').unwrapped
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
@@ -48,7 +48,8 @@ EPS_START = args.epsilon_start
 EPS_END = args.epsilon_end
 EPS_DECAY = args.epsilon_decay
 N_EPISODES = args.episodes
-MAX_STEPS = args.max_steps
+MAX_STEPS = args.max_steps if args.max_steps else env.spec.max_episode_steps
+args.max_steps = MAX_STEPS
 WARM_UP = args.warm_up
 TARGET_UPDATE = args.target_update
 
