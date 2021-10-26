@@ -10,12 +10,15 @@
 - **Loss:** _MSE_
 
 ## Envs:
-- cp_v0:    _CartPole-v0_  
-- cp_vL:    _cp_v0 -p 0.8_
-- ac_v1:    _Acrobot-v1_
-- ac_vL:    _?_
-- mc_v0:    _MountainCar-v0_
-- mc_vL:    _?_
+- **CartPole-v0:**  
+    + cp_v0:    _CartPole-v0_  
+    + cp_vL:    _cp_v0 -p 0.8_  
+- **Acrobot-v1:**  
+    + ac_v1:    _Acrobot-v1_  
+    + ac_vL:    _--link-len1 0.8 --link-len2 1.2_  
+- **MountainCar-v0:** 
+    + mc_v0:    _MountainCar-v0_  
+    + mc_vL:    _?_  
 
 ## Default Agent Params:
 - **Learning Rate:** _0.001_
@@ -47,7 +50,7 @@
 - **Collect Params:**  
     + -w 200  
 - **Transfer Params:**  
-    + -r 10  
+    + -r 5  
     + -T 2  
     + No Warm-Up!  
 
@@ -62,7 +65,7 @@
 - **Collect Params:**  
     + -w 200   
 - **Transfer Params:**  
-    + -r 10  
+    + -r 5  
     + -T 2  
     + No Warm-Up!  
     
@@ -76,13 +79,13 @@ Limited Experience Replay
 
 #### Experiment 4:  
 ##### Exp. 1 & 2 for Acrobot  
-- **Episodes:** _800_  
+- **Episodes:** _1,000_  
 - **Collect Params:**  
     + **Warm Up:** _1,000_  
     + **DQV:** -t 5  
     + **DQV2:** -t 5  
 - **Transfer Params:**  
     + -r 5  
-    + -T 2  
+    + -T 20  
     + No Warm-Up!  
 ##### Exp. 1 & 2 for Mountain Car  

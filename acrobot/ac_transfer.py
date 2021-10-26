@@ -137,7 +137,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
 
     with no_print():
         local_hist = []
-        episode_scores = agent.play(env, 1, visualize=VIS_EVAL)
+        episode_scores = agent.play(env, 1, MAX_STEPS, visualize=VIS_EVAL)
         local_hist.append(episode_scores[0])
         for _ in range(N_EPISODES // TEST_EVERY):
             agent.train(env, TEST_EVERY, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP, visualize=VIS_TRAIN)
@@ -178,4 +178,4 @@ with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
 # plot history
-plot_transfer_history(history_file, ylim=(0, 200))
+plot_transfer_history(history_file, ylim=(-600, 0))

@@ -48,7 +48,7 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
     plt.xlabel("Episodes")
     plt.ylabel("Scores")
     plt.title(title)
-    plt.legend(loc="upper left")
+    plt.legend(loc="best")
 
     fig = plt.gcf()
     if save:
