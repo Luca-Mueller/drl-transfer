@@ -121,12 +121,14 @@ class LimitedSplitReplayBuffer(SplitReplayBuffer):
             self.memory.append(self.transition_type(*args))
 
 
-# TODO: fix push for full buffer
 class LimitedFilledReplayBuffer(FilledReplayBuffer):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, limit: int = 1000, **kwargs):
         super(LimitedFilledReplayBuffer, self).__init__(*args, **kwargs)
+        assert limit < self.capacity, "buffer limit is greater than capacity"
+        self.limit = limit
         self.name = "LimitedFilledReplayBuffer"
 
     def _push(self, *args):
-        if len(self.memory) != self.capacity:
+        if self.limit != 0:
             self.memory.append(self.transition_type(*args))
+            self.limit -= 1

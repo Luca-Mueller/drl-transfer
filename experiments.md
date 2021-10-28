@@ -75,10 +75,10 @@ Limited Experience Replay
 - cp_v0 --> cp_vL  
 - cp_vL --> cp_v0  
 - **Transfer:** _Buffer, Model, Buffer + Model_  
-- **Params::** _see Exp. 1 & 2_  
+- **Params:** _see Exp. 1 & 2_  
 
 #### Experiment 4:  
-##### Exp. 1 & 2 for Acrobot  
+##### Exp. 1, 2  & 3 for Acrobot  
 - **Episodes:** _1,000_  
 - **Collect Params:**  
     + **Warm Up:** _1,000_  

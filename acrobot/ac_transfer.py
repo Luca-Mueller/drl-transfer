@@ -10,7 +10,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 from torch_agents.models import DQN
-from torch_agents.replay_buffer import Transition, SimpleReplayBuffer, SplitReplayBuffer, FilledReplayBuffer
+from torch_agents.replay_buffer import Transition, SimpleReplayBuffer,  FilledReplayBuffer, LimitedReplayBuffer, \
+    LimitedFilledReplayBuffer
 from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent, DQV2Agent
 from torch_agents.plotting import plot_transfer_history
@@ -127,9 +128,15 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
     optimizer = optim.Adam(model.parameters(), lr=LR)
     loss_function = nn.MSELoss()
     if buffer_transfer:
-        replay_buffer = FilledReplayBuffer(BUFFER_SIZE, transfer_buffer, Transition)
+        if args.limited_buffer:
+            replay_buffer = LimitedFilledReplayBuffer(BUFFER_SIZE, transfer_buffer, Transition, limit=1000)
+        else:
+            replay_buffer = FilledReplayBuffer(BUFFER_SIZE, transfer_buffer, Transition)
     else:
-        replay_buffer = SimpleReplayBuffer(BUFFER_SIZE, Transition)
+        if args.limited_buffer:
+            replay_buffer = LimitedReplayBuffer(1000, Transition)
+        else:
+            replay_buffer = SimpleReplayBuffer(BUFFER_SIZE, Transition)
     policy = EpsilonGreedyPolicy(model, device, eps_decay=EPS_DECAY)
 
     agent = agent_type(model, replay_buffer, policy, optimizer, loss_function, gamma=GAMMA,
@@ -173,7 +180,8 @@ if len(double_transfer_agent_hist):
     hist["double_transfer"] = np.array(double_transfer_agent_hist)
 
 history_dir = Path("history") / TASK_NAME
-history_file = args.task_name + "_" + args.agent + "_" + str(N_EPISODES) + "eps_hist.pickle"
+history_file = args.task_name + "_" + args.agent + "_" + str(N_EPISODES) + "eps_" + ("ltd_" if args.limited_buffer else
+                                                                                     "") + "hist.pickle"
 with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
