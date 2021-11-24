@@ -4,6 +4,8 @@ from pathlib import Path
 import pickle
 from tqdm import tqdm
 from colorama import init, Fore, Back, Style
+from typing import Tuple
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
@@ -13,6 +15,7 @@ from torch_agents.models import DQN
 from torch_agents.replay_buffer import Transition, SimpleReplayBuffer, FilledReplayBuffer, LimitedFilledReplayBuffer, \
     LimitedReplayBuffer
 from torch_agents.policy import EpsilonGreedyPolicy
+from torch_agents.observer import StateObserver
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent, DQV2Agent
 from torch_agents.plotting import plot_transfer_history
 from torch_agents.utils import no_print, AgentArgParser, ArgPrinter
@@ -30,10 +33,7 @@ args = arg_parser.parse_args()
 
 # task
 TASK_NAME = args.task_name
-assert len(TASK_NAME) == 5, "task name should be exactly 5 letters (experiments.md.g. cp_v0)"
-
-# needs transfer buffer, transfer model or both
-assert args.buffer_name or args.model_name, "no buffer or model specified for transfer"
+assert len(TASK_NAME) == 5, "task name should be exactly 5 letters (e.g. cp_v0)"
 
 # agent type
 assert args.agent in ["DQN", "DDQN", "DQV", "DQV2"], f"invalid agent type '{args.agent}'"
@@ -110,29 +110,26 @@ env.length = args.pole_length
 n_observations = env.observation_space.shape[0]
 n_actions = env.action_space.n
 
-# scores
-default_agent_hist, buffer_transfer_agent_hist, model_transfer_agent_hist, double_transfer_agent_hist = [], [], [], []
+# load trained model to predict Q*
+OPT_MODEL_NAME = TASK_NAME + MODEL_NAME[5:]
+opt_model = DQN(n_observations, n_actions).to(device)
+opt_model.load_state_dict(torch.load(MODEL_DIR / TASK_NAME / OPT_MODEL_NAME))
 
 
 # perform one training cycle for one agent
-def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> np.array:
-    global default_agent_hist, buffer_transfer_agent_hist, model_transfer_agent_hist, double_transfer_agent_hist
-
+def train_agent(model_transfer: bool = False) -> Tuple[list]:
+    q_pred, q_opt = [], []
+    states_visited = []
+    state_observer = StateObserver(states_visited)
     model = DQN(n_observations, n_actions).to(device)
     if model_transfer:
         model.load_state_dict(torch.load(MODEL_DIR / MODEL_NAME[:5] / MODEL_NAME))
     optimizer = optim.Adam(model.parameters(), lr=LR)
     loss_function = nn.MSELoss()
-    if buffer_transfer:
-        if args.limited_buffer:
-            replay_buffer = LimitedFilledReplayBuffer(BUFFER_SIZE, transfer_buffer, Transition, limit=1000)
-        else:
-            replay_buffer = FilledReplayBuffer(BUFFER_SIZE, transfer_buffer, Transition)
+    if args.limited_buffer:
+        replay_buffer = LimitedReplayBuffer(1000, Transition)
     else:
-        if args.limited_buffer:
-            replay_buffer = LimitedReplayBuffer(1000, Transition)
-        else:
-            replay_buffer = SimpleReplayBuffer(BUFFER_SIZE, Transition)
+        replay_buffer = SimpleReplayBuffer(BUFFER_SIZE, Transition)
     policy = EpsilonGreedyPolicy(model, device, eps_start=EPS_START, eps_end=EPS_END, eps_decay=EPS_DECAY)
 
     agent = agent_type(model, replay_buffer, policy, optimizer, loss_function, gamma=GAMMA,
@@ -140,44 +137,57 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
 
     with no_print():
         local_hist = []
-        episode_scores = agent.play(env, 1, visualize=VIS_EVAL)
-        local_hist.append(episode_scores[0])
+        episode_scores = agent.play(env, 1, observer=state_observer, visualize=VIS_EVAL)
+        while len(states_visited):
+            with torch.no_grad():
+                s = states_visited.pop()
+                q_pred.append(model(s).max(0)[0].squeeze())
+                q_opt.append(opt_model(s).max(0)[0].squeeze())
+        local_hist.extend(episode_scores)
         for _ in range(N_EPISODES // TEST_EVERY):
             agent.train(env, TEST_EVERY, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP, visualize=VIS_TRAIN)
-            episode_scores = agent.play(env, 10, MAX_STEPS, visualize=VIS_EVAL)
-            local_hist.append(np.mean(episode_scores))
+            episode_scores = agent.play(env, 1, MAX_STEPS, observer=state_observer, visualize=VIS_EVAL)
+            while len(states_visited):
+                with torch.no_grad():
+                    s = states_visited.pop()
+                    q_pred.append(model(s).max(0)[0].squeeze())
+                    q_opt.append(opt_model(s).max(0)[0].squeeze())
+            local_hist.extend(episode_scores)
 
-    return np.array(local_hist)
+    return local_hist, q_pred, q_opt
 
 
-# train loop
-print(agent_color + Back.BLACK, end="")
-for i in tqdm(range(REPETITIONS)):
-    # default agent
-    default_agent_hist.append(train_agent())
-    # buffer transfer
-    if BUFFER_NAME:
-        buffer_transfer_agent_hist.append(train_agent(buffer_transfer=True))
-    # model transfer
-    if MODEL_NAME:
-        model_transfer_agent_hist.append(train_agent(model_transfer=True))
-    # double transfer
-    if BUFFER_NAME and MODEL_NAME:
-        double_transfer_agent_hist.append(train_agent(buffer_transfer=True, model_transfer=True))
-print(Style.RESET_ALL, end="")
+# train
+# default agent
+default_agent_hist, default_agent_q_pred, default_agent_q_opt = train_agent()
+# model transfer
+if MODEL_NAME:
+    model_transfer_agent_hist, model_transfer_agent_q_pred, model_transfer_agent_q_opt = train_agent(model_transfer=True)
+
+default_agent_delta_q = np.array(default_agent_q_pred) - np.array(default_agent_q_opt)
+plt.plot(default_agent_delta_q)
+plt.title("Delta Q for default agent")
+plt.xlabel("Steps")
+plt.ylabel("Q")
+plt.show()
+
+if MODEL_NAME:
+    model_transfer_delta_q = np.array(model_transfer_agent_q_pred) - np.array(model_transfer_agent_q_opt)
+    plt.plot(model_transfer_delta_q)
+    plt.title("Delta Q for model transfer agent")
+    plt.xlabel("Steps")
+    plt.ylabel("Q")
+    plt.show()
 
 # save history
-hist = {"default": np.array(default_agent_hist), "x": np.arange(len(default_agent_hist[0])) * TEST_EVERY}
-if len(buffer_transfer_agent_hist):
-    hist["buffer_transfer"] = np.array(buffer_transfer_agent_hist)
+hist = {"default": np.array(default_agent_hist), "x": np.arange(len(default_agent_hist)) * TEST_EVERY}
+hist["q_default"] = default_agent_delta_q
 if len(model_transfer_agent_hist):
     hist["model_transfer"] = np.array(model_transfer_agent_hist)
-if len(double_transfer_agent_hist):
-    hist["double_transfer"] = np.array(double_transfer_agent_hist)
+    hist["q_model_transfer"] = model_transfer_delta_q
 
 history_dir = Path("history") / TASK_NAME
-history_file = args.task_name + "_" + args.agent + "_" + str(N_EPISODES) + "eps_" + ("ltd_" if args.limited_buffer else
-                                                                                     "") + "hist.pickle"
+history_file = args.task_name + "_" + args.agent + "_" + "q_" + ("ltd_" if args.limited_buffer else "") + "hist.pickle"
 with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 

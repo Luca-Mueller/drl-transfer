@@ -36,6 +36,9 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
     x = hist.pop("x")
 
     for key in hist:
+        if key.startswith("q"):
+            continue
+
         mean = np.mean(hist[key], axis=0)
         sm_mean = savgol_filter(mean, 27, 3)
         std = savgol_filter(np.std(hist[key], axis=0), 27, 3)

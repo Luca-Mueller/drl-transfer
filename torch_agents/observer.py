@@ -31,6 +31,14 @@ class BufferObserver(Observer):
         self._buffer.push(*args)
 
 
+class StateObserver(Observer):
+    def __init__(self, state_buffer: list):
+       self._buffer = state_buffer
+
+    def _save(self, state, *args):
+        self._buffer.append(state)
+
+
 class MultiObserver(Observer):
     def __init__(self, *args):
         self.observers = [*args]
