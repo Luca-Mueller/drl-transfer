@@ -36,7 +36,7 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
     x = hist.pop("x")
 
     for key in hist:
-        if key.startswith("q"):
+        if key.startswith("q_"):
             continue
 
         mean = np.mean(hist[key], axis=0)
@@ -52,6 +52,8 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
     plt.ylabel("Scores")
     plt.title(title)
     plt.legend(loc="best")
+
+    print("save " + filename)
 
     fig = plt.gcf()
     if save:
