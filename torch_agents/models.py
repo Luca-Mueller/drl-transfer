@@ -108,7 +108,7 @@ class ConvDQN(nn.Module):
 # Conv V Model
 class ConvVModel(nn.Module):
     def __init__(self, h: int, w: int, window_size: int = 4):
-        super(ConvDQN, self).__init__()
+        super(ConvVModel, self).__init__()
         self.conv1 = nn.Conv2d(window_size, 16, kernel_size=5, stride=2)
         self.bn1 = nn.BatchNorm2d(16)
         self.conv2 = nn.Conv2d(16, 32, kernel_size=5, stride=2)
@@ -134,3 +134,50 @@ class ConvVModel(nn.Module):
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
         return self.head(x.view(x.size(0), -1))
+
+
+# Conv V2 Model
+class ConvV2Model(nn.Module):
+    def __init__(self, conv_dqn: ConvDQN):
+        super(ConvV2Model, self).__init__()
+        self.conv1 = conv_dqn.conv1
+        self.bn1 = conv_dqn.bn1
+        self.conv2 = conv_dqn.conv2
+        self.bn2 = conv_dqn.bn2
+        self.conv3 = conv_dqn.conv3
+        self.bn3 = conv_dqn.bn3
+
+        # Number of Linear input connections depends on output of conv2d layers
+        # and therefore the input image size, so compute it.
+        def conv2d_size_out(size, kernel_size=5, stride=2):
+            return (size - (kernel_size - 1) - 1) // stride + 1
+        h, w = conv_dqn.shape[0][1], conv_dqn[0][2]
+        convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
+        convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
+        linear_input_size = convw * convh * 32
+        self.head = nn.Linear(linear_input_size, 1)
+
+    def forward(self, x):
+        if len(x.shape) == 3:
+            x = x.unsqueeze(0)
+        x = x.float() / 255.
+        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn2(self.conv2(x)))
+        x = F.relu(self.bn3(self.conv3(x)))
+        return self.head(x.view(x.size(0), -1))
+
+    def freeze(self):
+        self.conv1.weight.requires_grad = False
+        self.bn1.weight.requires_grad = False
+        self.conv2.weight.requires_grad = False
+        self.bn2.weight.requires_grad = False
+        self.conv3.weight.requires_grad = False
+        self.bn3.weight.requires_grad = False
+
+    def unfreeze(self):
+        self.conv1.weight.requires_grad = True
+        self.bn1.weight.requires_grad = True
+        self.conv2.weight.requires_grad = True
+        self.bn2.weight.requires_grad = True
+        self.conv3.weight.requires_grad = True
+        self.bn3.weight.requires_grad = True

@@ -5,7 +5,7 @@ import numpy as np
 import torch
 from torch import optim
 
-from torch_agents.models import VModel, V2Model
+from torch_agents.models import VModel, V2Model, ConvVModel, ConvV2Model
 from torch_agents.replay_buffer import ReplayBuffer, Transition
 from torch_agents.policy import Policy, GreedyPolicy, RandomPolicy
 from torch_agents.driver import SimpleDriver, ALEDriver
@@ -192,9 +192,7 @@ class DDQNAgent(DQNAgent):
         reward_batch = torch.cat(batch.reward)
 
         state_action_values = self.policy_model(state_batch).gather(1, action_batch)
-
-        with torch.no_grad():
-            max_action_values = self.policy_model(non_final_next_states).max(1)[1].unsqueeze(1)
+        max_action_values = self.policy_model(non_final_next_states).max(1)[1].unsqueeze(1)
 
         next_state_values = torch.zeros(batch_size, device=self.device)
         next_state_values[non_final_mask] = self.target_model(non_final_next_states).gather(1, max_action_values).reshape(-1)
@@ -269,11 +267,25 @@ class DQVAgent(Agent):
         self.v_optimizer.step()
 
     def _build_v_model(self):
+        if len(self.policy_model.shape[0]) > 1:
+            self._build_v_model_cnn()
+        else:
+            self._build_v_model_mlp()
+
+    def _build_v_model_mlp(self):
         n_observations = self.policy_model.shape[0]
         fc1_nodes = self.policy_model.fc1_nodes
         fc2_nodes = self.policy_model.fc2_nodes
 
         self.v_policy_model = VModel(n_observations, fc1_nodes, fc2_nodes).to(self.device)
+        self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
+        self.v_target_model.eval()
+        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
+
+    def _build_v_model_cnn(self):
+        window_size, h, w = self.policy_model.shape[0]
+
+        self.v_policy_model = ConvVModel(h, w, window_size=window_size).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
         self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
@@ -330,7 +342,19 @@ class DQV2Agent(DQVAgent):
         self.v_policy_model.unfreeze()
 
     def _build_v_model(self):
+        if len(self.policy_model.shape[0]) > 1:
+            self._build_v_model_cnn()
+        else:
+            self._build_v_model_mlp()
+
+    def _build_v_model_mlp(self):
         self.v_policy_model = V2Model(self.policy_model).to(self.device)
+        self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
+        self.v_target_model.eval()
+        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
+
+    def _build_v_model_cnn(self):
+        self.v_policy_model = ConvV2Model(self.policy_model).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
         self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
