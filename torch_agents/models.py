@@ -67,3 +67,34 @@ class V2Model(nn.Module):
     def unfreeze(self):
         self.fc1.weight.requires_grad = True
         self.fc2.weight.requires_grad = True
+
+
+# Conv DQN for ALE
+class ConvDQN(nn.Module):
+    def __init__(self, h: int, w: int, outputs: int, window_size: int = 4):
+        super(ConvDQN, self).__init__()
+        self.shape = ((h, w, window_size), outputs)
+        self.conv1 = nn.Conv2d(window_size, 16, kernel_size=5, stride=2)
+        self.bn1 = nn.BatchNorm2d(16)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=5, stride=2)
+        self.bn2 = nn.BatchNorm2d(32)
+        self.conv2 = nn.Conv2d(32, 32, kernel_size=5, stride=2)
+        self.bn2 = nn.BatchNorm2d(32)
+
+        # Number of Linear input connections depends on output of conv2d layers
+        # and therefore the input image size, so compute it.
+        def conv2d_size_out(size, kernel_size=5, stride=2):
+            return (size - (kernel_size - 1) - 1) // stride + 1
+
+        convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w)))
+        convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h)))
+        linear_input_size = convw * convh * 32
+        self.head = nn.Linear(linear_input_size, outputs)
+
+    def forward(self, x):
+
+        return x
+
+    def predict(self, x, device: str):
+        y = self.__call__(x).max(0)[1].view(1, 1)
+        return torch.tensor([[y]], dtype=torch.long, device=device)

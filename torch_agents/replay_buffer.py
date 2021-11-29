@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections import deque, namedtuple
 import copy
 import random
+import numpy as np
 from typing import Union
 from torch_agents.utils import empty_frame
 
@@ -87,6 +88,7 @@ class SimpleFrameBuffer(ReplayBuffer):
                 states.insert(0, empty_frame())
             else:
                 states.insert(0, self.memory[idx].state)
+        states = np.moveaxis(np.array(states), 0, -1)
         sample = Transition(states, sample.action, sample.reward, sample.next_state)
         return sample
 
