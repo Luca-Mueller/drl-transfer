@@ -8,7 +8,7 @@ from torch import optim
 from torch_agents.models import VModel, V2Model
 from torch_agents.replay_buffer import ReplayBuffer, Transition
 from torch_agents.policy import Policy, GreedyPolicy, RandomPolicy
-from torch_agents.driver import SimpleDriver
+from torch_agents.driver import SimpleDriver, ALEDriver
 from torch_agents.observer import Observer, BufferObserver, DummyObserver
 
 
@@ -25,6 +25,9 @@ class Agent(ABC):
                  device: str = "cpu"):
         self.policy_model = model
         self.replay_buffer = replay_buffer
+        self.driver_type = SimpleDriver
+        if "Frame" in replay_buffer.name:
+            self.driver_type = ALEDriver
         self.policy = policy
         self.optimizer = optimizer
         self.loss_function = loss_function
@@ -48,12 +51,12 @@ class Agent(ABC):
 
     def _train(self, env, n_episodes: int, max_steps: int, batch_size: int, warm_up_period: int,
                visualize: bool) -> np.array:
-        driver = SimpleDriver(env, RandomPolicy(self.policy_model.shape[1], self.device), self.observer, self.device)
+        driver = self.driver_type(env, RandomPolicy(self.policy_model.shape[1], self.device), self.observer, self.device)
         while len(self.replay_buffer) < warm_up_period:
             print(f"\rBufferSize: {len(self.replay_buffer):>6}/{self.replay_buffer.capacity:<6}", end="")
             driver.step()
 
-        driver = SimpleDriver(env, self.policy, self.observer, self.device)
+        driver = self.driver_type(env, self.policy, self.observer, self.device)
         history = []
         for episode in range(n_episodes):
             for step in count():
@@ -87,7 +90,7 @@ class Agent(ABC):
         return np.array(history)
 
     def _play(self, env, n_episodes: int, max_steps: int, observer: Observer, visualize: bool) -> np.array:
-        driver = SimpleDriver(env, GreedyPolicy(self.policy_model, device=self.device), observer, self.device)
+        driver = self.driver_type(env, GreedyPolicy(self.policy_model, device=self.device), observer, self.device)
         history = []
 
         for episode in range(n_episodes):

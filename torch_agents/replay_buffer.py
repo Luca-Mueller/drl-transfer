@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import deque, namedtuple
 import copy
 import random
-import numpy as np
+import torch
 from typing import Union
 from torch_agents.utils import empty_frame
 
@@ -63,12 +63,13 @@ class SimpleReplayBuffer(ReplayBuffer):
 
 
 class SimpleFrameBuffer(ReplayBuffer):
-    def __init__(self, capacity: int, *args, window_size: int = 4, **kwargs):
+    def __init__(self, capacity: int, device: str, *args, window_size: int = 4, **kwargs):
         super(SimpleFrameBuffer, self).__init__(*args, **kwargs)
         self.memory = [None for _ in range(capacity)]
         self.idx = 0
         self.capacity = capacity
         self.window_size = window_size
+        self.device = device
         self.name = "SimpleFrameBuffer"
 
     def _full(self):
@@ -81,15 +82,19 @@ class SimpleFrameBuffer(ReplayBuffer):
 
     def _sample_one(self, idx: int) -> Transition:
         sample = self.memory[idx]
-        states = [sample.state]
+        states = sample.state.unsqueeze(0).to(self.device)
         for _ in range(self.window_size - 1):
             idx = self._left(idx)
             if self.memory[idx] is None:
-                states.insert(0, empty_frame())
+                empty = torch.from_numpy(empty_frame()).unsqueeze(0).to(self.device)
+                states = torch.cat((empty, states), 0)
             else:
-                states.insert(0, self.memory[idx].state)
-        states = np.moveaxis(np.array(states), 0, -1)
-        sample = Transition(states, sample.action, sample.reward, sample.next_state)
+                states = torch.cat((self.memory[idx].state.unsqueeze(0), states), 0)
+        next_states = None
+        if sample.next_state is not None:
+            next_states = torch.cat((states[1:, :, :], sample.next_state), 0).unsqueeze(0)
+        states = states.unsqueeze(0)
+        sample = Transition(states, sample.action, sample.reward, next_states)
         return sample
 
     def _push(self, *args):
@@ -98,12 +103,10 @@ class SimpleFrameBuffer(ReplayBuffer):
         if self.idx == self.capacity:
             self.idx = 0
 
-        print(self.idx)
-
     def _sample(self, batch_size: int) -> list:
         batch = []
         if self._full():
-            max_idx = self.capacity - 1
+            max_idx = self.capacity
         else:
             max_idx = self.idx
 
