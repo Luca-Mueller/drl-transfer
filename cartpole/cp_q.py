@@ -146,7 +146,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
     with no_print():
         local_hist = []
         episode_scores = agent.play(env, 1, observer=state_observer, visualize=VIS_EVAL)
-        while len(states_visited):
+        while states_visited:
             with torch.no_grad():
                 s = states_visited.pop()
                 q_pred.append(model(s).max(0)[0].squeeze())
@@ -156,7 +156,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
         for _ in range(N_EPISODES // TEST_EVERY):
             agent.train(env, TEST_EVERY, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP, visualize=VIS_TRAIN)
             episode_scores = agent.play(env, 1, MAX_STEPS, observer=state_observer, visualize=VIS_EVAL)
-            while len(states_visited):
+            while states_visited:
                 with torch.no_grad():
                     s = states_visited.pop()
                     q_pred.append(model(s).max(0)[0].squeeze())
@@ -169,23 +169,21 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
 # train
 default_agent_hist, default_agent_q_pred, default_agent_q_opt = train_agent()
 
-if MODEL_NAME:
-    if BUFFER_NAME:
-        double_transfer_agent_hist, double_transfer_agent_q_pred, double_transfer_agent_q_opt = train_agent(True, True)
-    else:
-        model_transfer_agent_hist, model_transfer_agent_q_pred, model_transfer_agent_q_opt = train_agent(model_transfer=True)
+if BUFFER_NAME:
+    double_transfer_agent_hist, double_transfer_agent_q_pred, double_transfer_agent_q_opt = train_agent(True, True)
+else:
+    model_transfer_agent_hist, model_transfer_agent_q_pred, model_transfer_agent_q_opt = train_agent(model_transfer=True)
 
 # plot delta Q
 default_agent_delta_q = np.array(default_agent_q_pred) - np.array(default_agent_q_opt)
 plt.plot(default_agent_delta_q, label="default")
 
-if MODEL_NAME:
-    if BUFFER_NAME:
-        double_transfer_delta_q = np.array(double_transfer_agent_q_pred) - np.array(double_transfer_agent_q_opt)
-        plt.plot(double_transfer_delta_q, label="double transfer")
-    else:
-        model_transfer_delta_q = np.array(model_transfer_agent_q_pred) - np.array(model_transfer_agent_q_opt)
-        plt.plot(model_transfer_delta_q, label="model transfer")
+if BUFFER_NAME:
+    double_transfer_delta_q = np.array(double_transfer_agent_q_pred) - np.array(double_transfer_agent_q_opt)
+    plt.plot(double_transfer_delta_q, label="double transfer")
+else:
+    model_transfer_delta_q = np.array(model_transfer_agent_q_pred) - np.array(model_transfer_agent_q_opt)
+    plt.plot(model_transfer_delta_q, label="model transfer")
 
 plt.title("Delta Q")
 plt.xlabel("Steps")
@@ -199,13 +197,13 @@ plt.show()
 # save history
 hist = {"default": np.array([default_agent_hist]), "x": np.arange(len(default_agent_hist)) * TEST_EVERY}
 hist["q_default"] = default_agent_delta_q
-if MODEL_NAME:
-    if BUFFER_NAME:
-        hist["double_transfer"] = np.array([double_transfer_agent_hist])
-        hist["q_double_transfer"] = double_transfer_delta_q
-    else:
-        hist["model_transfer"] = np.array([model_transfer_agent_hist])
-        hist["q_model_transfer"] = model_transfer_delta_q
+
+if BUFFER_NAME:
+    hist["double_transfer"] = np.array([double_transfer_agent_hist])
+    hist["q_double_transfer"] = double_transfer_delta_q
+else:
+    hist["model_transfer"] = np.array([model_transfer_agent_hist])
+    hist["q_model_transfer"] = model_transfer_delta_q
 
 history_dir = Path("history") / TASK_NAME
 history_file = args.task_name + "_" + args.agent + "_" + "q_" + ("ltd_" if args.limited_buffer else "") + "hist.pickle"

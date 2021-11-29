@@ -3,6 +3,8 @@ from colorama import init, Fore, Style
 import sys
 import os
 import argparse
+import numpy as np
+import cv2
 
 
 @contextmanager
@@ -14,6 +16,18 @@ def no_print():
             yield
         finally:
             sys.stdout = old_stdout
+
+
+def resize_frame(frame):
+    frame = frame[30:-12,5:-4]
+    frame = np.average(frame,axis = 2)
+    frame = cv2.resize(frame,(84,84),interpolation = cv2.INTER_NEAREST)
+    frame = np.array(frame,dtype = np.uint8)
+    return frame
+
+
+def empty_frame():
+    return np.zeros(84 * 84, dtype="uint8").reshape(84, 84)
 
 
 class AgentArgParser(argparse.ArgumentParser):

@@ -3,6 +3,7 @@ from collections import deque, namedtuple
 import copy
 import random
 from typing import Union
+from torch_agents.utils import empty_frame
 
 
 """
@@ -58,6 +59,64 @@ class SimpleReplayBuffer(ReplayBuffer):
 
     def _len(self):
         return len(self.memory)
+
+
+class SimpleFrameBuffer(ReplayBuffer):
+    def __init__(self, capacity: int, *args, window_size: int = 4, **kwargs):
+        super(SimpleFrameBuffer, self).__init__(*args, **kwargs)
+        self.memory = [None for _ in range(capacity)]
+        self.idx = 0
+        self.capacity = capacity
+        self.window_size = window_size
+        self.name = "SimpleFrameBuffer"
+
+    def _full(self):
+        return None not in self.memory
+
+    def _left(self, idx):
+        if idx == 0:
+            return self.capacity - 1
+        return idx - 1
+
+    def _sample_one(self, idx: int) -> Transition:
+        sample = self.memory[idx]
+        states = [sample.state]
+        for _ in range(self.window_size - 1):
+            idx = self._left(idx)
+            if self.memory[idx] is None:
+                states.insert(0, empty_frame())
+            else:
+                states.insert(0, self.memory[idx].state)
+        sample = Transition(states, sample.action, sample.reward, sample.next_state)
+        return sample
+
+    def _push(self, *args):
+        self.memory[self.idx] = self.transition_type(*args)
+        self.idx += 1
+        if self.idx == self.capacity:
+            self.idx = 0
+
+        print(self.idx)
+
+    def _sample(self, batch_size: int) -> list:
+        batch = []
+        if self._full():
+            max_idx = self.capacity - 1
+        else:
+            max_idx = self.idx
+
+        indeces = random.sample(range(max_idx), batch_size)
+        for idx in indeces:
+            s = self._sample_one(idx)
+            batch.append(s)
+
+        return batch
+
+    def _len(self):
+        if self._full():
+            return self.capacity
+        else:
+            return self.idx
 
 
 class SplitReplayBuffer(ReplayBuffer):
