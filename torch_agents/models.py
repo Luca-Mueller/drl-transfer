@@ -89,7 +89,8 @@ class ConvDQN(nn.Module):
         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w, 8, 4), 4, 2), 3, 1)
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h, 8, 4), 4, 2), 3, 1)
         linear_input_size = convw * convh * 64
-        self.head = nn.Linear(linear_input_size, outputs)
+        self.fc1 = nn.Linear(linear_input_size, 512)
+        self.head = nn.Linear(512, outputs)
 
     def forward(self, x):
         if len(x.shape) == 3:
@@ -98,7 +99,8 @@ class ConvDQN(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        return self.head(x.view(x.size(0), -1))
+        x = F.relu(self.fc1(x.view(x.size(0), -1)))
+        return self.head(x)
 
     def predict(self, x, device: str):
         y = self.__call__(x).max(1)[1].view(1, 1)
@@ -124,7 +126,8 @@ class ConvVModel(nn.Module):
         convw = conv2d_size_out(conv2d_size_out(conv2d_size_out(w, 8, 4), 4, 2), 3, 1)
         convh = conv2d_size_out(conv2d_size_out(conv2d_size_out(h, 8, 4), 4, 2), 3, 1)
         linear_input_size = convw * convh * 64
-        self.head = nn.Linear(linear_input_size, 1)
+        self.fc1 = nn.Linear(linear_input_size, 512)
+        self.head = nn.Linear(512, 1)
 
     def forward(self, x):
         if len(x.shape) == 3:
@@ -133,7 +136,8 @@ class ConvVModel(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        return self.head(x.view(x.size(0), -1))
+        x = F.relu(self.fc1(x.view(x.size(0), -1)))
+        return self.head(x)
 
 
 # Conv V2 Model
@@ -146,14 +150,8 @@ class ConvV2Model(nn.Module):
         self.bn2 = conv_dqn.bn2
         self.conv3 = conv_dqn.conv3
         self.bn3 = conv_dqn.bn3
-
-        # Number of Linear input connections depends on output of conv2d layers
-        # and therefore the input image size, so compute it.
-        def conv2d_size_out(size, kernel_size=5, stride=2):
-            return (size - (kernel_size - 1) - 1) // stride + 1
-
-        linear_input_size = conv_dqn.head.in_features
-        self.head = nn.Linear(linear_input_size, 1)
+        self.fc1 = conv_dqn.fc1
+        self.head = nn.Linear(512, 1)
 
     def forward(self, x):
         if len(x.shape) == 3:
@@ -162,7 +160,8 @@ class ConvV2Model(nn.Module):
         x = F.relu(self.bn1(self.conv1(x)))
         x = F.relu(self.bn2(self.conv2(x)))
         x = F.relu(self.bn3(self.conv3(x)))
-        return self.head(x.view(x.size(0), -1))
+        x = F.relu(self.fc1(x.view(x.size(0), -1)))
+        return self.head(x)
 
     def freeze(self):
         self.conv1.weight.requires_grad = False
@@ -171,6 +170,7 @@ class ConvV2Model(nn.Module):
         self.bn2.weight.requires_grad = False
         self.conv3.weight.requires_grad = False
         self.bn3.weight.requires_grad = False
+        self.fc1.weight.requires_grad = False
 
     def unfreeze(self):
         self.conv1.weight.requires_grad = True
@@ -179,3 +179,4 @@ class ConvV2Model(nn.Module):
         self.bn2.weight.requires_grad = True
         self.conv3.weight.requires_grad = True
         self.bn3.weight.requires_grad = True
+        self.fc1.weight.requires_grad = True
