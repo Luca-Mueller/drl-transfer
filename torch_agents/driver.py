@@ -73,31 +73,26 @@ class SimpleDriver(Driver):
 
 
 class ALEDriver(Driver):
-    def __init__(self, *args, skip=0, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.skip = skip
-
     def _step(self) -> bool:
-        action = self.policy.select_action(self.state)
         self.steps += 1
-        for _ in range(self.skip + 1):
-            observation, reward, done, _ = self.env.step(action.item())
-            self._acc_reward += reward
-            reward = torch.tensor([reward], device=self.device, dtype=torch.float32)
+        action = self.policy.select_action(self.state)
+        observation, reward, done, _ = self.env.step(action.item())
+        self._acc_reward += reward
+        reward = torch.tensor([reward], device=self.device, dtype=torch.float32)
 
-            if not done:
-                next_state = torch.tensor(resize_frame(observation), device=self.device, dtype=torch.uint8).unsqueeze(0)
-            else:
-                next_state = None
+        if not done:
+            next_state = torch.tensor(resize_frame(observation), device=self.device, dtype=torch.uint8).unsqueeze(0)
+        else:
+            next_state = None
 
-            self.observer.save(self.state[-1, :, :], action, reward, next_state)
-            if not done:
-                self.state = torch.cat((self.state[1:, :, :], next_state), 0)
+        self.observer.save(self.state[-1, :, :], action, reward, next_state)
+        if not done:
+            self.state = torch.cat((self.state[1:, :, :], next_state), 0)
 
-            if done:
-                self.append_rewards()
-                self.reset()
-                return True
+        if done:
+            self.append_rewards()
+            self.reset()
+            return True
 
         return False
 

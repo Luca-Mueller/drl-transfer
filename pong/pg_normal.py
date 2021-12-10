@@ -17,22 +17,22 @@ from torch_agents.utils import AgentArgParser, ArgPrinter
 
 class FireResetEnv(gym.Wrapper):
     def __init__(self, env=None):
-       super(FireResetEnv, self).__init__(env)
-       assert env.unwrapped.get_action_meanings()[1] == 'FIRE'
-       assert len(env.unwrapped.get_action_meanings()) >= 3
+        super(FireResetEnv, self).__init__(env)
+        assert env.unwrapped.get_action_meanings()[1] == 'FIRE'
+        assert len(env.unwrapped.get_action_meanings()) >= 3
 
     def step(self, action):
-       return self.env.step(action)
+        return self.env.step(action)
 
     def reset(self):
-       self.env.reset()
-       obs, _, done, _ = self.env.step(1)
-       if done:
-          self.env.reset()
-       obs, _, done, _ = self.env.step(2)
-       if done:
-          self.env.reset()
-       return obs
+        self.env.reset()
+        obs, _, done, _ = self.env.step(1)
+        if done:
+            self.env.reset()
+        obs, _, done, _ = self.env.step(2)
+        if done:
+            self.env.reset()
+        return obs
 
 
 class MaxAndSkipEnv(gym.Wrapper):
@@ -45,24 +45,24 @@ class MaxAndSkipEnv(gym.Wrapper):
         total_reward = 0.0
         done = None
         for _ in range(self._skip):
-           obs, reward, done, info = self.env.step(action)
-           self._obs_buffer.append(obs)
-           total_reward += reward
-           if done:
-               break
+            obs, reward, done, info = self.env.step(action)
+            self._obs_buffer.append(obs)
+            total_reward += reward
+            if done:
+                break
         max_frame = np.max(np.stack(self._obs_buffer), axis=0)
         return max_frame, total_reward, done, info
 
     def reset(self):
-       self._obs_buffer.clear()
-       obs = self.env.reset()
-       self._obs_buffer.append(obs)
-       return obs
+        self._obs_buffer.clear()
+        obs = self.env.reset()
+        self._obs_buffer.append(obs)
+        return obs
 
 
 # initialize color / gym / device
 init()
-env = gym.make('Pong-v0')#.unwrapped
+env = gym.make('PongDeterministic-v4')#.unwrapped
 env = FireResetEnv(MaxAndSkipEnv(env))
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -117,7 +117,7 @@ n_actions = env.action_space.n
 
 # build agent
 model = ConvDQN(84, 84, n_actions).to(device)
-optimizer = optim.Adam(model.parameters(), lr=LR)
+optimizer = optim.RMSprop(model.parameters(), lr=LR, eps=0.01)
 loss_function = nn.MSELoss()
 replay_buffer = SimpleFrameBuffer(BUFFER_SIZE, device, Transition)
 policy = EpsilonGreedyPolicy(model, device, eps_start=EPS_START, eps_end=EPS_END, eps_decay=EPS_DECAY)

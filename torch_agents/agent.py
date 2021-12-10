@@ -58,11 +58,13 @@ class Agent(ABC):
 
         driver = self.driver_type(env, self.policy, self.observer, self.device)
         history = []
+        max_reward = None
         for episode in range(n_episodes):
             for step in count():
                 # TODO: Epsilon cannot be printed for policies other than EpsilonGreedyPolicy
                 print(f"\rEpisode: {episode + 1:>5}/{n_episodes:<5}\t BufferSize: {len(self.replay_buffer):>6}/"
-                      f"{self.replay_buffer.capacity:<6}\t Epsilon: {self.policy.eps:.4f}", end="")
+                      f"{self.replay_buffer.capacity:<6}\t Epsilon: {self.policy.eps:.4f}",
+                      f"\tMax Reward: {max_reward if max_reward else '-'}", end="")
 
                 if visualize:
                     env.render()
@@ -80,6 +82,8 @@ class Agent(ABC):
                     break
 
             history.append(driver.reward_history[-1])
+            if max_reward is None or max_reward < history[-1]:
+                max_reward = history[-1]
 
             self.episodes_trained += 1
             if (self.episodes_trained + 1) % self.target_update_period == 0:
@@ -290,8 +294,8 @@ class DQVAgent(Agent):
         self.v_policy_model = ConvVModel(h, w, window_size=window_size).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
-        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
-
+        # alpha = tau (tensorflow) in RMSprop
+        self.v_optimizer = optim.RMSprop(self.v_policy_model.parameters(), lr=self.lr, alpha=0.95, eps=0.01)
 
 class DQV2Agent(DQVAgent):
     def __init__(self, *args, **kwargs):
@@ -359,4 +363,5 @@ class DQV2Agent(DQVAgent):
         self.v_policy_model = ConvV2Model(self.policy_model).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
-        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
+        # alpha = tau (tensorflow) in RMSprop
+        self.v_optimizer = optim.RMSprop(self.v_policy_model.parameters(), lr=self.lr, alpha=0.95, eps=0.01)
