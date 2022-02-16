@@ -1,6 +1,6 @@
 import gym
-import numpy as np
-import collections
+import pickle
+from pathlib import Path
 from colorama import init, Fore, Style
 
 import torch
@@ -12,12 +12,26 @@ from torch_agents.replay_buffer import Transition, SimpleFrameBuffer
 from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent, DQV2Agent
 from torch_agents.plotting import plot_scores
-from torch_agents.utils import AgentArgParser, ArgPrinter, FireResetEnv, MaxAndSkipEnv
+from torch_agents.utils import AgentArgParser, ArgPrinter, FireResetEnv, MaxAndSkipEnv, PongReduceActions, \
+    EnduroReduceActions, BreakoutReduceActions, ClipRewardEnv
+
+# game env
+ENV_NAMES = {"Pong": "PongDeterministic-v4", "Enduro": "EnduroDeterministic-v0", "Breakout": "BreakoutDeterministic-v0"}
+ENV = "Enduro"
 
 # initialize color / gym / device
 init()
-env = gym.make('PongDeterministic-v4')#.unwrapped
-env = FireResetEnv(MaxAndSkipEnv(env))
+env = gym.make(ENV_NAMES[ENV])
+
+if ENV == "Pong":
+    env = PongReduceActions(env)
+if ENV == "Enduro":
+    env = EnduroReduceActions(env)
+if ENV == "Breakout":
+    env = BreakoutReduceActions(env)
+env = FireResetEnv(env)
+env = MaxAndSkipEnv(env)
+env = ClipRewardEnv(env)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # parse args
@@ -85,9 +99,14 @@ episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, 
                              visualize=VIS_TRAIN)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
-plot_scores(episode_scores, title=("Pong-v0 " + agent.name + " Training"))
+plot_scores(episode_scores, title=(ENV + agent.name + " Training"))
+
+agent_dir = Path("agents")
+#with open(agent_dir / f"{ENV}_{agent.name}_{N_EPISODES}eps.pkl", "wb") as f:
+#    pickle.dump(agent, f)
 
 # test
+# TODO: test in non-deterministic env
 print("Evaluate...")
 threshold = env.spec.reward_threshold
 if threshold:
@@ -95,4 +114,4 @@ if threshold:
 test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVAL)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
-plot_scores(test_scores, title=("Pong-v0 " + agent.name + " Test"))
+plot_scores(test_scores, title=(ENV + agent.name + " Test"))

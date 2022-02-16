@@ -36,6 +36,7 @@ class Agent(ABC):
         self.target_update_period = target_update_period
         self.device = device
         self.episodes_trained = 0
+        self.best_model = None
         self.name = "Base"
 
     def train(self, env, n_episodes: int, max_steps: int = None, batch_size: int = 32, warm_up_period: int = 0,
@@ -64,7 +65,7 @@ class Agent(ABC):
                 # TODO: Epsilon cannot be printed for policies other than EpsilonGreedyPolicy
                 print(f"\rEpisode: {episode + 1:>5}/{n_episodes:<5}\t BufferSize: {len(self.replay_buffer):>6}/"
                       f"{self.replay_buffer.capacity:<6}\t Epsilon: {self.policy.eps:.4f}",
-                      f"\tMax Reward: {max_reward if max_reward else '-'}", end="")
+                      f"\tMax Reward: {max_reward if max_reward is not None else '-'}", end="")
 
                 if visualize:
                     env.render()
@@ -83,6 +84,7 @@ class Agent(ABC):
 
             history.append(driver.reward_history[-1])
             if max_reward is None or max_reward < history[-1]:
+                self._save_best_model()
                 max_reward = history[-1]
 
             self.episodes_trained += 1
@@ -120,6 +122,9 @@ class Agent(ABC):
         env.close()
         print("")
         return np.array(history)
+
+    def _save_best_model(self):
+        self.best_model = self.policy_model.state_dict
 
     @abstractmethod
     def _update_target(self):
@@ -273,7 +278,7 @@ class DQVAgent(Agent):
         self.v_optimizer.step()
 
     def _build_v_model(self):
-        if len(self.policy_model.shape[0]) > 1:
+        if isinstance(self.policy_model.shape[0], tuple):
             self._build_v_model_cnn()
         else:
             self._build_v_model_mlp()
@@ -348,7 +353,7 @@ class DQV2Agent(DQVAgent):
         self.v_policy_model.unfreeze()
 
     def _build_v_model(self):
-        if len(self.policy_model.shape[0]) > 1:
+        if isinstance(self.policy_model.shape[0], tuple):
             self._build_v_model_cnn()
         else:
             self._build_v_model_mlp()
@@ -357,11 +362,11 @@ class DQV2Agent(DQVAgent):
         self.v_policy_model = V2Model(self.policy_model).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
-        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr)
+        self.v_optimizer = optim.Adam(self.v_policy_model.parameters(), lr=self.lr * 0.5)
 
     def _build_v_model_cnn(self):
         self.v_policy_model = ConvV2Model(self.policy_model).to(self.device)
         self.v_target_model = copy.deepcopy(self.v_policy_model).to(self.device)
         self.v_target_model.eval()
         # alpha = tau (tensorflow) in RMSprop
-        self.v_optimizer = optim.RMSprop(self.v_policy_model.parameters(), lr=self.lr, alpha=0.95, eps=0.01)
+        self.v_optimizer = optim.RMSprop(self.v_policy_model.parameters(), lr=self.lr * 0.5, alpha=0.95, eps=0.01)

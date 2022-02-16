@@ -21,7 +21,8 @@ def plot_scores(scores, title: str = None, show: bool = True):
 
 
 def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title: str = None,
-                          ylim: Union[int, Tuple[int, int]] = None, show: bool = True, save: bool = True):
+                          ylim: Union[int, Tuple[int, int]] = None, xlim: Union[int, Tuple[int, int]] = None,
+                          show: bool = True, save: bool = True):
     if not filename.endswith(".pickle"):
         filename += ".pickle"
 
@@ -31,7 +32,9 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
         hist = pickle.load(f)
 
     if title is None:
-        title = filename[:-12].replace("_", " ")
+        title = filename[:10].replace("_", " ").replace("vL", "mod")
+        title = title.replace("cp ", "CartPole-").replace("ac ", "Acrobot-")
+        title = title[:-4] + "|" + title[-5:]
 
     x = hist.pop("x")
 
@@ -40,18 +43,20 @@ def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), title
             continue
 
         mean = np.mean(hist[key], axis=0)
-        sm_mean = savgol_filter(mean, 27, 3)
-        std = savgol_filter(np.std(hist[key], axis=0), 27, 3)
+        sm_mean = savgol_filter(mean, 21, 3)
+        std = savgol_filter(np.std(hist[key], axis=0), 21, 3)
 
-        plt.plot(x, sm_mean, label=key.replace("_", " "))
+        plt.plot(x, mean, lw=5.0, label=key.replace("_", " "))
+        plt.xlim(xlim)
         if ylim:
             plt.ylim(ylim)
-        plt.fill_between(x, sm_mean - std, sm_mean + std, alpha=0.2)
+        plt.fill_between(x, sm_mean - std, sm_mean + std, alpha=0.15)
 
-    plt.xlabel("Episodes")
-    plt.ylabel("Scores")
-    plt.title(title)
-    plt.legend(loc="best")
+    #plt.xlabel("Episodes", fontsize="large")
+    #plt.ylabel("Scores", fontsize="large")
+    plt.title(title, fontsize="x-large")
+    #plt.legend(loc="lower right", fontsize="x-large")
+    plt.grid(alpha=0.7)
 
     print("save " + filename)
 

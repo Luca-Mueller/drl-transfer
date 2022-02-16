@@ -26,6 +26,12 @@ class DQN(nn.Module):
         y = self.__call__(x).max(0)[1].view(1, 1)
         return torch.tensor([[y]], dtype=torch.long, device=device)
 
+    def reset_head(self, outputs: int = None):
+        if not outputs:
+            self.fc3.reset_parameters()
+        else:
+            self.fc3 = nn.Linear(self.fc2_nodes, outputs)
+
 
 # V Model
 class VModel(nn.Module):
@@ -42,6 +48,12 @@ class VModel(nn.Module):
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
+
+    def reset_head(self, outputs: int = None):
+        if not outputs:
+            self.fc3.reset_parameters()
+        else:
+            self.fc3 = nn.Linear(self.fc2_nodes, outputs)
 
 
 # V2 Model
@@ -67,6 +79,12 @@ class V2Model(nn.Module):
     def unfreeze(self):
         self.fc1.weight.requires_grad = True
         self.fc2.weight.requires_grad = True
+
+    def reset_head(self, outputs: int = None):
+        if not outputs:
+            self.fc3.reset_parameters()
+        else:
+            self.fc3 = nn.Linear(self.fc2_nodes, outputs)
 
 
 # Conv DQN for ALE
@@ -106,6 +124,12 @@ class ConvDQN(nn.Module):
         y = self.__call__(x).max(1)[1].view(1, 1)
         return torch.tensor([[y]], dtype=torch.long, device=device)
 
+    def reset_head(self, outputs: int = None):
+        if not outputs:
+            self.head.reset_parameters()
+        else:
+            self.head = nn.Linear(512, outputs)
+
 
 # Conv V Model
 class ConvVModel(nn.Module):
@@ -138,6 +162,12 @@ class ConvVModel(nn.Module):
         x = F.relu(self.bn3(self.conv3(x)))
         x = F.relu(self.fc1(x.view(x.size(0), -1)))
         return self.head(x)
+
+    def reset_head(self, outputs: int = None):
+        if not outputs:
+            self.head.reset_parameters()
+        else:
+            self.head = nn.Linear(512, outputs)
 
 
 # Conv V2 Model
@@ -180,3 +210,9 @@ class ConvV2Model(nn.Module):
         self.conv3.weight.requires_grad = True
         self.bn3.weight.requires_grad = True
         self.fc1.weight.requires_grad = True
+
+    def reset_head(self, outputs: int = None):
+        if not outputs:
+            self.head.reset_parameters()
+        else:
+            self.head = nn.Linear(512, outputs)

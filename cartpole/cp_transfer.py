@@ -30,7 +30,7 @@ args = arg_parser.parse_args()
 
 # task
 TASK_NAME = args.task_name
-assert len(TASK_NAME) == 5, "task name should be exactly 5 letters (experiments.md.g. cp_v0)"
+assert len(TASK_NAME) == 5, "task name should be exactly 5 letters (e.g. cp_v0)"
 
 # needs transfer buffer, transfer model or both
 assert args.buffer_name or args.model_name, "no buffer or model specified for transfer"
@@ -121,6 +121,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
     model = DQN(n_observations, n_actions).to(device)
     if model_transfer:
         model.load_state_dict(torch.load(MODEL_DIR / MODEL_NAME[:5] / MODEL_NAME))
+        #model.reset_head()
     optimizer = optim.Adam(model.parameters(), lr=LR)
     loss_function = nn.MSELoss()
     if buffer_transfer:

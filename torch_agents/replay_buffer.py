@@ -4,7 +4,6 @@ import copy
 import random
 import torch
 from typing import Union
-from torch_agents.utils import empty_frame
 
 
 """
@@ -89,9 +88,9 @@ class SimpleFrameBuffer(ReplayBuffer):
         states = sample.state.unsqueeze(0)
         for _ in range(self.window_size - 1):
             idx = self._left(idx)
-            if self.memory[idx] is None:
-                empty = torch.from_numpy(empty_frame()).unsqueeze(0).to(self.device)
-                states = torch.cat((empty, states), 0)
+            if self.memory[idx] is None or self.memory[idx].next_state is None:
+                repeat_frame = states[-1].unsqueeze(0)
+                states = torch.cat((repeat_frame, states), 0)
             else:
                 states = torch.cat((self.memory[idx].state.unsqueeze(0), states), 0)
         next_states = None
@@ -114,8 +113,8 @@ class SimpleFrameBuffer(ReplayBuffer):
         else:
             max_idx = self.idx
 
-        indeces = random.sample(range(max_idx), batch_size)
-        for idx in indeces:
+        indices = random.sample(range(max_idx), batch_size)
+        for idx in indices:
             s = self._sample_one(idx)
             batch.append(s)
 

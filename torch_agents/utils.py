@@ -77,6 +77,41 @@ class MaxAndSkipEnv(gym.Wrapper):
         return obs
 
 
+class ClipRewardEnv(gym.RewardWrapper):
+    def __init__(self, env):
+        gym.RewardWrapper.__init__(self, env)
+
+    def reward(self, reward):
+        """Bin reward to {+1, 0, -1} by its sign."""
+        return np.sign(reward)
+
+
+class PongReduceActions(gym.Wrapper):
+    def __init__(self, env=None):
+        super(PongReduceActions, self).__init__(env)
+        self.action_space = gym.spaces.Discrete(3)
+
+    def step(self, action):
+        return self.env.step(action + 1)
+
+
+class EnduroReduceActions(gym.Wrapper):
+    def __init__(self, env=None):
+        super(EnduroReduceActions, self).__init__(env)
+        self.action_space = gym.spaces.Discrete(3)
+
+    def step(self, action):
+        return self.env.step(action + 1)
+
+class BreakoutReduceActions(gym.Wrapper):
+    def __init__(self, env=None):
+        super(BreakoutReduceActions, self).__init__(env)
+        self.action_space = gym.spaces.Discrete(3)
+
+    def step(self, action):
+        return self.env.step(action + 1)
+
+
 class AgentArgParser(argparse.ArgumentParser):
     def __init__(self):
         super(AgentArgParser, self).__init__()
