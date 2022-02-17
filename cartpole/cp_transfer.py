@@ -121,7 +121,7 @@ def train_agent(buffer_transfer: bool = False, model_transfer: bool = False) -> 
     model = DQN(n_observations, n_actions).to(device)
     if model_transfer:
         model.load_state_dict(torch.load(MODEL_DIR / MODEL_NAME[:5] / MODEL_NAME))
-        #model.reset_head()
+        model.reset_head()
     optimizer = optim.Adam(model.parameters(), lr=LR)
     loss_function = nn.MSELoss()
     if buffer_transfer:

@@ -5,6 +5,7 @@ import pickle
 from colorama import init, Fore
 from typing import Tuple
 import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter
 
 import torch
 import torch.nn as nn
@@ -88,7 +89,7 @@ MAX_STEPS = args.max_steps if args.max_steps else env.spec.max_episode_steps
 args.max_steps = MAX_STEPS
 WARM_UP = args.warm_up
 TARGET_UPDATE = args.target_update
-REPETITIONS = args.repetitions
+#REPETITIONS = args.repetitions
 TEST_EVERY = args.test_every
 
 # visualization
@@ -176,22 +177,26 @@ else:
 
 # plot delta Q
 default_agent_delta_q = np.array(default_agent_q_pred) - np.array(default_agent_q_opt)
-plt.plot(default_agent_delta_q, label="default")
+smoothed_default_agent_delta_q = savgol_filter(default_agent_delta_q, 101, 7)
+plt.plot(smoothed_default_agent_delta_q, label="default", lw=2.5)
 
 if BUFFER_NAME:
     double_transfer_delta_q = np.array(double_transfer_agent_q_pred) - np.array(double_transfer_agent_q_opt)
-    plt.plot(double_transfer_delta_q, label="double transfer")
+    smoothed_double_transfer_delta_q = savgol_filter(double_transfer_delta_q, 101, 7)
+    plt.plot(smoothed_double_transfer_delta_q, label="double transfer", lw=2.5)
 else:
     model_transfer_delta_q = np.array(model_transfer_agent_q_pred) - np.array(model_transfer_agent_q_opt)
-    plt.plot(model_transfer_delta_q, label="model transfer")
+    smoothed_model_transfer_delta_q = savgol_filter(model_transfer_delta_q, 101, 7)
+    plt.plot(smoothed_model_transfer_delta_q, label="model transfer", lw=2.5)
 
-plt.title("Delta Q")
-plt.xlabel("Steps")
-plt.ylabel("Q")
+plt.title("CartPole-mod: (Q - Q*)", fontsize="x-large")
+plt.xlabel("Steps", fontsize="large")
+plt.ylabel("ΔQ", fontsize="large")
 plt.legend(loc="best")
+plt.grid(alpha=0.7)
 fig = plt.gcf()
 plot_dir = Path("plots")
-fig.savefig(plot_dir / "delta_q" / (TASK_NAME + "_" + args.agent))
+#fig.savefig(plot_dir / "delta_q" / (TASK_NAME + "_" + args.agent))
 plt.show()
 
 # save history
@@ -211,4 +216,4 @@ with open(history_dir / history_file, "wb") as f:
     pickle.dump(hist, f)
 
 # plot history
-plot_transfer_history(history_file, ylim=(0, 200))
+plot_transfer_history(history_file, ylim=(0, 200), save=False)

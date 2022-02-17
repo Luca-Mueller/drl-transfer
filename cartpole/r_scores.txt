@@ -1,0 +1,30 @@
+cp_v0_DQN_200eps
+buffer_transfer     :0.21
+model_transfer      :0.36
+double_transfer     :0.28
+
+cp_v0_DDQN_200eps
+buffer_transfer     :0.1
+model_transfer      :0.11
+double_transfer     :0.13
+
+cp_v0_DQV_200eps
+buffer_transfer     :0.26
+model_transfer      :0.26
+double_transfer     :0.17
+
+cp_vL_DQN_200eps
+buffer_transfer     :-0.0
+model_transfer      :0.23
+double_transfer     :0.24
+
+cp_vL_DDQN_200eps
+buffer_transfer     :0.13
+model_transfer      :0.19
+double_transfer     :0.12
+
+cp_vL_DQV_200eps
+buffer_transfer     :0.3
+model_transfer      :0.22
+double_transfer     :0.29
+
