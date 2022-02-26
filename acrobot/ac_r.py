@@ -8,20 +8,35 @@ KEYS = ["buffer_transfer", "model_transfer", "double_transfer"]
 
 
 def calc_r(default_score, transfer_score):
-    # add 500 since rewards are in range [-500, 0]
+    # add 500 since rewards are in range [-500, 0)
     mean_default = np.mean(default_score, axis=0) + 500
     mean_transfer = np.mean(transfer_score, axis=0) + 500
     return (sum(mean_transfer) - sum(mean_default)) / sum(mean_transfer)
 
 if __name__ == "__main__":
-    filename = sys.argv[1]
-    TASK = filename[:5]
-    PATH = HISTORY / TASK / filename
+    eps = sys.argv[1]
+    history = Path("history")
 
-    with open(PATH, "rb") as f:
-        data = pickle.load(f)
+    print("Area Ratio Scores")
 
-    print(f"r Scores {filename}")
+    with open("r_scores.txt", "w") as file:
+        for task in ("ac_v1", "ac_vL"):
+            for agent in ("DQN", "DDQN", "DQV"):
+                try:
+                    filename = f"{task}_{agent}_{eps}eps_hist.pickle"
+                    path = history / task / filename
 
-    for key in KEYS:
-        print(f"{key:<20}:{calc_r(data['default'], data[key])}")
+                    with open(path, "rb") as f:
+                        data = pickle.load(f)
+
+                    print(f"\n{filename[:-12]}")
+                    file.write(filename[:-12] + '\n')
+
+                    for key in KEYS:
+                        line = f"{key:<20}:{round(calc_r(data['default'], data[key]), 2)}"
+                        print(line)
+                        file.write(line + '\n')
+
+                    file.write('\n')
+                except FileNotFoundError:
+                    print(f"\nNo entry found for {task}_{agent}_{eps}eps")

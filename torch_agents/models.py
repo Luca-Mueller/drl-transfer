@@ -16,7 +16,7 @@ class DQN(nn.Module):
         self.fc3 = nn.Linear(fc2_nodes, outputs)
 
     def forward(self, x):
-        x = x.squeeze(0)
+        x = x.squeeze(0).float()
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -43,7 +43,7 @@ class VModel(nn.Module):
         self.fc3 = nn.Linear(fc2_nodes, 1)
 
     def forward(self, x):
-        x = x.squeeze(0)
+        x = x.squeeze(0).float()
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
@@ -66,7 +66,7 @@ class V2Model(nn.Module):
         self.fc3 = nn.Linear(dqn.fc2_nodes, 1)
 
     def forward(self, x):
-        x = x.squeeze(0)
+        x = x.squeeze(0).float()
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)

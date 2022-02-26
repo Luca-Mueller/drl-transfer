@@ -135,12 +135,13 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("-vv", action="store_true", help="render training and evaluation")
 
     def add_collect_args(self):
-        self.add_argument("--task-name", type=str, required=True, help="5 letter task name")
+        self.add_argument("--task-name", type=str, required=True, help="5 letter task name (gym) or name of game (ale)")
+        self.add_argument("--save-buffer", action="store_true", help="store experience replay buffer")
         self.add_argument("--save-model", action="store_true", help="store Q policy model")
         self.add_argument("--save-agent", action="store_true", help="store agent")
 
     def add_transfer_args(self):
-        self.add_argument("--task-name", type=str, required=True, help="5 letter task name")
+        self.add_argument("--task-name", type=str, required=True, help="5 letter task name (gym) or name of game (ale)")
         self.add_argument("--buffer-name", type=str, default=None, help="name of buffer file")
         self.add_argument("--buffer-dir", type=str, default="buffers", help="name of buffer directory ('buffers')")
         self.add_argument("--model-name", type=str, default=None, help="name of model parameter file")
@@ -163,8 +164,6 @@ class AgentArgParser(argparse.ArgumentParser):
         self.add_argument("--link-com1", type=float, default=0.5, help="link one center of mass (0.5)")
         self.add_argument("--link-com2", type=float, default=0.5, help="link two center of mass (0.5)")
         self.add_argument("--link-moi", type=float, default=1.0, help="link moment of inertia (1.0)")
-
-    #TODO: add mountaincar args
 
 
 class ArgPrinter:

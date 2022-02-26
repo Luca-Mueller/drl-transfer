@@ -106,6 +106,7 @@ plot_scores(episode_scores, title=(TASK_NAME + " " + agent.name + " Training"))
 # test
 print("Evaluate...")
 print(f"Target Score: {env.spec.reward_threshold:.2f}")
+agent.load_best_model()
 test_scores = agent.play(env, 100, env.spec.max_episode_steps, visualize=VIS_EVAL)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)

@@ -36,7 +36,8 @@ class Agent(ABC):
         self.target_update_period = target_update_period
         self.device = device
         self.episodes_trained = 0
-        self.best_model = None
+        self.policy_model_weights = None
+        self.best_model_weights = None
         self.name = "Base"
 
     def train(self, env, n_episodes: int, max_steps: int = None, batch_size: int = 32, warm_up_period: int = 0,
@@ -59,13 +60,13 @@ class Agent(ABC):
 
         driver = self.driver_type(env, self.policy, self.observer, self.device)
         history = []
-        max_reward = None
+        max_return = None
         for episode in range(n_episodes):
             for step in count():
                 # TODO: Epsilon cannot be printed for policies other than EpsilonGreedyPolicy
                 print(f"\rEpisode: {episode + 1:>5}/{n_episodes:<5}\t BufferSize: {len(self.replay_buffer):>6}/"
                       f"{self.replay_buffer.capacity:<6}\t Epsilon: {self.policy.eps:.4f}",
-                      f"\tMax Reward: {max_reward if max_reward is not None else '-'}", end="")
+                      f"\tMax Return: {max_return if max_return is not None else '-'}", end="")
 
                 if visualize:
                     env.render()
@@ -83,9 +84,9 @@ class Agent(ABC):
                     break
 
             history.append(driver.reward_history[-1])
-            if max_reward is None or max_reward < history[-1]:
-                self._save_best_model()
-                max_reward = history[-1]
+            if max_return is None or max_return <= history[-1]:
+                self.save_best_model()
+                max_return = history[-1]
 
             self.episodes_trained += 1
             if (self.episodes_trained + 1) % self.target_update_period == 0:
@@ -123,8 +124,16 @@ class Agent(ABC):
         print("")
         return np.array(history)
 
-    def _save_best_model(self):
-        self.best_model = self.policy_model.state_dict
+    def save_best_model(self):
+        self.best_model_weights = copy.deepcopy(self.policy_model.state_dict())
+
+    def load_best_model(self):
+        self.policy_model_weights = copy.deepcopy(self.policy_model.state_dict())
+        self.policy_model.load_state_dict(self.best_model_weights)
+
+    def load_policy_model(self):
+        if self.policy_model_weights:
+            self.policy_model.load_state_dict(self.policy_model_weights)
 
     @abstractmethod
     def _update_target(self):
@@ -183,7 +192,7 @@ class DQNAgent(Agent):
 class DDQNAgent(DQNAgent):
     def __init__(self, *args, **kwargs):
         super(DDQNAgent, self).__init__(*args, **kwargs)
-        self.name = "DDQN"
+        self.name = "Double DQN"
 
     def _optimize(self, batch_size: int):
         if len(self.replay_buffer) < batch_size:

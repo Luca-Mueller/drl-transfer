@@ -10,13 +10,13 @@ if __name__ == "__main__":
 
     if TASK.startswith("cp"):
         PATH = Path("cartpole")
-        Y_LIM = (0, 200)
-        X_LIM = (0, 200)
+        Y_LIM = (-10, 210)
+        X_LIM = (-10, 210)
     if TASK.startswith("ac"):
         PATH = Path("acrobot")
-        Y_LIM = (-500, 0)
-        X_LIM = (0, 1000)
+        Y_LIM = (-520, 20)
+        X_LIM = (-20, 1020)
 
     HIST = PATH / "history"
 
-    plot_transfer_history(filename, HIST, save=False, ylim=Y_LIM, xlim=X_LIM)
+    plot_transfer_history(filename, HIST, plot_dir=(PATH / "plots"), save=True, ylim=Y_LIM, xlim=X_LIM)
