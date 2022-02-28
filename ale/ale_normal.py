@@ -27,6 +27,7 @@ ENV = args.task_name
 if ENV.lower() in map(lambda k: k.lower(), ENV_NAMES.keys()):
     ENV = ENV.capitalize()
 else:
+    print(f"environment '{ENV}' invalid, default to Pong")
     ENV = "Pong"
 
 # initialize color / gym / device
@@ -85,6 +86,7 @@ SAVE_MODEL = args.save_model
 SAVE_AGENT = args.save_agent
 
 # print info
+print(f"Env:\t{ENV}")
 ArgPrinter.print_agent(str(args.agent))
 ArgPrinter.print_device(str(device))
 ArgPrinter.print_args(args)
@@ -107,6 +109,10 @@ print("Train...")
 episode_scores = agent.train(env, N_EPISODES, MAX_STEPS, batch_size=BATCH_SIZE, warm_up_period=WARM_UP,
                              visualize=VIS_TRAIN)
 
+# free GPU memory
+replay_buffer.to(torch.device("cpu"))
+torch.cuda.empty_cache()
+
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
 plot_scores(episode_scores, title=(ENV + agent.name + " Training"))
 
@@ -121,6 +127,17 @@ test_scores = agent.play(env, 5, env.spec.max_episode_steps, visualize=VIS_EVAL)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
 plot_scores(test_scores, title=(ENV + agent.name + " Test"))
+
+# save model
+if SAVE_MODEL:
+    model_dir = Path("models") / ENV
+    if not model_dir.is_dir():
+        model_dir.mkdir()
+    idx = len([c for c in model_dir.iterdir()])
+    model_file = f"{ENV}_{agent.name}_{idx}.pth"
+    print("Save model as:\t'" + model_file + "'")
+
+    torch.save(model.state_dict(), model_dir / model_file)
 
 # build transfer buffer
 transfer_buffer = SimpleFrameBuffer(BUFFER_SIZE, Transition)
@@ -144,17 +161,6 @@ if SAVE_BUFFER:
 
     with open(buffer_dir / buffer_file, "wb") as f:
         pickle.dump(transfer_buffer, f)
-
-# save model
-if SAVE_MODEL:
-    model_dir = Path("models") / ENV
-    if not model_dir.is_dir():
-        model_dir.mkdir()
-    idx = len([c for c in model_dir.iterdir()])
-    model_file = f"{ENV}_{agent.name}_{idx}.pth"
-    print("Save model as:\t'" + model_file + "'")
-
-    torch.save(model.state_dict(), model_dir / model_file)
 
 # save agent
 if SAVE_AGENT:

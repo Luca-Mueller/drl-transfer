@@ -73,7 +73,7 @@ class SimpleFrameBuffer(ReplayBuffer):
 
     def to(self, device: str):
         self.memory = [[tensor.to(device) if tensor is not None else None for tensor in transition]
-                       for transition in self.memory]
+                       if transition is not None else None for transition in self.memory]
 
     def _full(self):
         return None not in self.memory
