@@ -86,26 +86,9 @@ class ClipRewardEnv(gym.RewardWrapper):
         return np.sign(reward)
 
 
-class PongReduceActions(gym.Wrapper):
+class ReduceActionsFLR(gym.Wrapper):
     def __init__(self, env=None):
-        super(PongReduceActions, self).__init__(env)
-        self.action_space = gym.spaces.Discrete(3)
-
-    def step(self, action):
-        return self.env.step(action + 1)
-
-
-class EnduroReduceActions(gym.Wrapper):
-    def __init__(self, env=None):
-        super(EnduroReduceActions, self).__init__(env)
-        self.action_space = gym.spaces.Discrete(3)
-
-    def step(self, action):
-        return self.env.step(action + 1)
-
-class BreakoutReduceActions(gym.Wrapper):
-    def __init__(self, env=None):
-        super(BreakoutReduceActions, self).__init__(env)
+        super(ReduceActionsFLR, self).__init__(env)
         self.action_space = gym.spaces.Discrete(3)
 
     def step(self, action):

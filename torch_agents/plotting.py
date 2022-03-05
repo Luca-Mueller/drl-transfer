@@ -21,12 +21,13 @@ def plot_scores(scores, title: str = None, show: bool = True):
 
 
 def plot_transfer_history(filename: str, hist_dir: Path = Path("history"), plot_dir: Path = Path("plots"),
-                          title: str = None, ylim: Union[int, Tuple[int, int]] = None,
+                          task_dir: str = None, title: str = None, ylim: Union[int, Tuple[int, int]] = None,
                           xlim: Union[int, Tuple[int, int]] = None, show: bool = True, save: bool = True):
     if not filename.endswith(".pickle"):
         filename += ".pickle"
 
-    task_dir = Path(filename[:5])
+    if not task_dir:
+        task_dir = Path(filename[:5])
 
     with open(hist_dir / task_dir / filename, "rb") as f:
         hist = pickle.load(f)

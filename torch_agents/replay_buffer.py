@@ -72,7 +72,7 @@ class SimpleFrameBuffer(ReplayBuffer):
         self.name = "SimpleFrameBuffer"
 
     def to(self, device: str):
-        self.memory = [[tensor.to(device) if tensor is not None else None for tensor in transition]
+        self.memory = [self.transition_type(*[tensor.to(device) if tensor is not None else None for tensor in transition])
                        if transition is not None else None for transition in self.memory]
 
     def _full(self):
@@ -149,23 +149,20 @@ class SplitReplayBuffer(ReplayBuffer):
         return len(self.memory) + len(self.transfer_memory)
 
 
-class FilledReplayBuffer(ReplayBuffer):
+class FilledFrameBuffer(SimpleFrameBuffer):
     def __init__(self, capacity: int, transfer_buffer: Union[ReplayBuffer, deque, list], *args, **kwargs):
-        super(FilledReplayBuffer, self).__init__(*args, **kwargs)
+        super(FilledFrameBuffer, self).__init__(capacity, *args, **kwargs)
         assert len(transfer_buffer) >= capacity, "transfer buffer too small: needs to be at least same as capacity"
-        if isinstance(transfer_buffer, ReplayBuffer):
-            transfer_memory = copy.deepcopy(list(transfer_buffer.memory))
-        elif isinstance(transfer_buffer, deque):
-            transfer_memory = copy.deepcopy(list(transfer_buffer))
+        if isinstance(transfer_buffer, SimpleFrameBuffer):
+            transfer_memory = transfer_buffer.memory
         elif isinstance(transfer_buffer, list):
-            transfer_memory = copy.deepcopy(transfer_buffer)
-        random.shuffle(transfer_memory)
-        self.memory = deque(transfer_memory[:capacity], maxlen=capacity)
+            transfer_memory = transfer_buffer
+        self.memory = transfer_memory[:capacity]
         self.capacity = capacity
         self.name = "FilledReplayBuffer"
 
     def _len(self):
-        return len(self.memory)
+        return self.capacity
 
 
 class LimitedReplayBuffer(SimpleReplayBuffer):

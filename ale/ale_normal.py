@@ -13,8 +13,8 @@ from torch_agents.policy import EpsilonGreedyPolicy
 from torch_agents.observer import BufferObserver
 from torch_agents.agent import DQNAgent, DDQNAgent, DQVAgent, DQV2Agent
 from torch_agents.plotting import plot_scores
-from torch_agents.utils import AgentArgParser, ArgPrinter, FireResetEnv, MaxAndSkipEnv, PongReduceActions, \
-    EnduroReduceActions, BreakoutReduceActions, ClipRewardEnv, no_print
+from torch_agents.utils import AgentArgParser, ArgPrinter, FireResetEnv, MaxAndSkipEnv, ReduceActionsFLR, \
+    ClipRewardEnv, no_print
 
 # parse args
 arg_parser = AgentArgParser()
@@ -34,12 +34,7 @@ else:
 init()
 env = gym.make(ENV_NAMES[ENV])
 
-if ENV == "Pong":
-    env = PongReduceActions(env)
-if ENV == "Enduro":
-    env = EnduroReduceActions(env)
-if ENV == "Breakout":
-    env = BreakoutReduceActions(env)
+emv = ReduceActionsFLR(env)
 env = FireResetEnv(env)
 env = MaxAndSkipEnv(env)
 #env = ClipRewardEnv(env)
@@ -123,7 +118,7 @@ threshold = env.spec.reward_threshold
 if threshold:
     print(f"Target Score: {threshold:.2f}")
 agent.load_best_model()
-test_scores = agent.play(env, 5, env.spec.max_episode_steps, visualize=VIS_EVAL)
+test_scores = agent.play(env, 1, env.spec.max_episode_steps, visualize=VIS_EVAL)
 
 print(Fore.GREEN + "Done\n" + Style.RESET_ALL)
 plot_scores(test_scores, title=(ENV + agent.name + " Test"))
@@ -139,19 +134,19 @@ if SAVE_MODEL:
 
     torch.save(model.state_dict(), model_dir / model_file)
 
-# build transfer buffer
-transfer_buffer = SimpleFrameBuffer(BUFFER_SIZE, Transition)
-transfer_observer = BufferObserver(transfer_buffer)
-
-print("Fill buffer...")
-while len(transfer_buffer) < BUFFER_SIZE:
-    with no_print():
-        test_scores = agent.play(env, 1, env.spec.max_episode_steps, observer=transfer_observer, visualize=VIS_EVAL)
-    print(f"\rBufferSize: {len(transfer_buffer):>6}/{BUFFER_SIZE:<6}", end="")
-print(Fore.GREEN + "\nDone\n" + Style.RESET_ALL)
-
-# save buffer
 if SAVE_BUFFER:
+    # build transfer buffer
+    transfer_buffer = SimpleFrameBuffer(BUFFER_SIZE, device)
+    transfer_observer = BufferObserver(transfer_buffer)
+
+    print("Fill buffer...")
+    while len(transfer_buffer) < BUFFER_SIZE:
+        with no_print():
+            test_scores = agent.play(env, 1, env.spec.max_episode_steps, observer=transfer_observer, visualize=VIS_EVAL)
+        print(f"\rBufferSize: {len(transfer_buffer):>6}/{BUFFER_SIZE:<6}", end="")
+    print(Fore.GREEN + "\nDone\n" + Style.RESET_ALL)
+
+    # save buffer
     buffer_dir = Path("buffers") / ENV
     if not buffer_dir.is_dir():
         buffer_dir.mkdir()
